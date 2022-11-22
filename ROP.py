@@ -23,3 +23,33 @@ class ROP:
         print("example support function")
 
     # send_rop()?
+    def send_rop(self, vuln_input):
+        curr_input = 1
+        p = process(self.file)
+		# Step through program and wait for vulnerable input
+        while p.poll() == None:
+            if p.can_recv(timeout=1):
+                try:
+                    p.recv()
+                except EOFError:
+                    return
+            else:
+				# Send exploit and switch to interactive
+                if curr_input == vuln_input:
+                    p.sendline(self.exploit)
+                    p.interactive()
+                    try:
+                        p.close()
+                        p.kill()
+                    except:
+                        return
+                    return
+                else:
+                    p.sendline(b'a')
+                    curr_input += 1
+		# In case, close and kill the process
+        try:
+            p.close()
+            p.kill()
+        except:
+            return
