@@ -27,7 +27,7 @@ for binary in os.listdir(path):
     print("    Has overflow  ", has_buffoverflow())
     print("    Has rop       ", has_rop())
     print("    Has syscall   ", has_syscall())
-    
+    print("    Has format    ", has_format())
 
 '''
     if has_win():
