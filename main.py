@@ -10,7 +10,8 @@ Format Strings Libc Leak
 Format Strings Write Primitive
 Format Strings GOT Overwrite
 '''
-from auto_exploit_analyzer import *
+import os
+from auto_exploit_analyzer import analyze
 
 path = './bins/'
 for binary in os.listdir(path):
