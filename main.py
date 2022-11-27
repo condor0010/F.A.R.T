@@ -28,6 +28,8 @@ for binary in os.listdir(path):
     print("    Has rop       ", analyzer.has_rop())
     print("    Has syscall   ", analyzer.has_syscall())
     print("    Has format    ", analyzer.has_format())
+    print("    Has execve    ", analyzer.has_execve())
+
 
 '''
     if has_win():
