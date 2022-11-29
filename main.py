@@ -12,9 +12,9 @@ Format Strings GOT Overwrite
 '''
 import os
 from pwn import *
-from auto_exploit_analyzer import analyze
+from fart import analyze
 
-path = './bins/'
+path = './bins2/'
 for binary in os.listdir(path):
     analyzer = analyze(path + binary)
     print(binary+":")
@@ -24,7 +24,6 @@ for binary in os.listdir(path):
     print("    Has win       ", analyzer.has_win())
     print("    Has system    ", analyzer.has_system())
     print("    Has printf    ", analyzer.has_printf())
-    #print("    Has overflow  ", analyzer.has_buffoverflow())
     print("    Has rop       ", analyzer.has_rop())
     print("    Has syscall   ", analyzer.has_syscall())
     print("    Has format    ", analyzer.has_format())
