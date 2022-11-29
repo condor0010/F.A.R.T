@@ -2,7 +2,7 @@ from pwn import *
 from fart import analyze
 
 # make everything shut up!!!
-context.log_level = 'warning'
+logging.getLogger('pwnlib').setLevel(logging.WARNING)
 
 binary = './bins2/bin-ret2win-0'
 #e = ELF(binary)
