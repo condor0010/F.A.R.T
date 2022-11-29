@@ -1,35 +1,22 @@
-'''
-* Return-to-Win
-* Return-to-System
-* Return-to-Execve
-* Return-to-Syscall
-Return-to-Libc (OneGadget)
-ROP Write Primitive
-* Format Strings Stack Leak
-Format Strings Libc Leak
-Format Strings Write Primitive
-Format Strings GOT Overwrite
-'''
-
 import re
 import json
-import angr
 import r2pipe
-
-# Identify solution set from binary.
-# i.e. write a tool that's sole purpose is identifying which techniques we need to use.
+import angr, angrop
 
 class analyze:
     def __init__(s, binary):
         # misc
+        s.binary = binary
         #s.fastcall = []
 
-        # angr setup
-        
-        
+        # angr/ angrop setup
+        s.angry = angr.Project(s.binary)
+        s.angry_rop = angry.analyses.ROP()
+        s.angry_rop.find_gadgets()
+        s.chain = b''
+
         # r2pipe setup
-        s.binary = binary
-        s.r2 = r2pipe.open(binary) # open binary
+        s.r2 = r2pipe.open(s.binary) # open binary
         s.r2.cmd('aaa') # anilize binary
         s.izz = json.loads(s.r2.cmd('izj')) # returns json relating to strings
         s.afl = json.loads(s.r2.cmd('aflj')) # returns json relating to functions
@@ -41,11 +28,20 @@ class analyze:
         s.string_addrs = dict(zip(s.strings, [i['vaddr'] for i in s.izz if 'string' in i]))
         s.function_addrs = dict(zip(s.functions, [i['offset'] for i in s.afl if 'name' in i]))
 
-    def test(s):
-        print(s.string_addrs)
-        print(s.function_addrs)
 
+    def check_mem_corruption(s, simgr):
+        print(len(simgr.unconstrained))
+        #if len(simgr.unconstrained):
+            #for path in simgr.unconstrained:
+                #if path.satisfiable(extra_constraints=[path.regs.pc == b"CCCC"]):
+                    #path.add_constraints(path.regs.pc == b"CCCC")
+                    #if path.satisfiable():
+                        #simgr.stashes['mem_corrupt'].append(path)
+                    #simgr.stashes['unconstrained'].remove(path)
+                    #simgr.drop(stash='active')
+        #return simgr
 
+    # has stuff
     def has_binsh(s):
         return '/bin/sh' in s.strings
 
@@ -79,29 +75,31 @@ class analyze:
     def has_rop(s):
         return any((match := re.compile(r'gadget*').match(i)) for i in s.functions)
     
-    #for i in s.izz:
-    #    return i['vaddr'] if (i['string'] == '/bin/sh') else next
-    
+    # get stuff
     def get_binsh(s):
         try:
             return s.string_addrs['/bin/sh']
         except:
             return None
+    
     def get_flagtxt(s):
         try:
             return s.string_addrs['flag.txt']
         except:
-            return None 
+            return None
+    
     def get_catflagtxt(s):
         try:
             return s.string_addrs['/bin/sh']
         except:
             return None
+    
     def get_win(s):
         try:
             return s.function_addrs['sym.win']
         except:
             return None
+    
     def get_vuln(s):
         try:
             return s.function_addrs['sym.vuln']
