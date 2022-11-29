@@ -1,15 +1,3 @@
-'''
-* Return-to-Win
-* Return-to-System
-Return-to-Execve
-Return-to-Syscall
-Return-to-Libc (OneGadget)
-ROP Write Primitive
-Format Strings Stack Leak
-Format Strings Libc Leak
-Format Strings Write Primitive
-Format Strings GOT Overwrite
-'''
 import os
 from pwn import *
 from fart import analyze
@@ -31,4 +19,3 @@ for binary in os.listdir(path):
     print("        /bin/sh   ", analyzer.get_binsh())
     print("        flag.txt  ", analyzer.get_flagtxt())
     print("        win       ", analyzer.get_win())
-
