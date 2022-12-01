@@ -3,11 +3,12 @@ from pwn import *
 import angr, angrop, sys
 import argparse
 
-# Argparse will replace this
-binary = sys.argv[1]
-
 # Functions for handling arguments go here
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    # Add argument parsing
+    parser = argparse.ArgumentParser(description='An Automatic Exploit Generation tool created by Hannah Callihan, Joshua Connolly, Louis Orcinolo, and Warren Smith')
+    parser.add_argument('-f', '--file', type=str, required=True, help='name of binary you want to exploit')
+
+    args = parser.parse_args()
+
+    binary = args.file
