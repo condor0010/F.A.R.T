@@ -3,7 +3,7 @@ import json
 import r2pipe
 import logging
 import subprocess
-#import angr, angrop, claripy
+import angr, angrop, claripy
 from pwn import *
 
 logging.disable(logging.CRITICAL)
@@ -53,12 +53,11 @@ class our_rop:
                 return i #int(i[:18], 16)
         return None
 
-    def test(s, reg):
+    def check_args(s, num):
         for i in s.gadgets:
             if 'pop '+reg in i:
-                return i #int(i[:18], 16)
+                return i.count('pop') #int(i[:18], 16)
         return None
-
 
 
 class analyze:
@@ -157,6 +156,7 @@ class analyze:
             return '0x' in io.recvline().encode('utf-8')
         except:
             return True
+
 '''
 class get2overflow:
     def __init__(s, binary):
@@ -180,15 +180,14 @@ class get2overflow:
     def check_mem_corruption(s, simgr):
         if len(simgr.unconstrained) > 0:
             for path in simgr.unconstrained:
-                path.add_constraints(path.regs.pc == b"O`Connor")
+                path.add_constraints(path.regs.pc == b"AAAAAAAA")
                 if path.satisfiable():
                     stack_smash = path.solver.eval(s.symbolic_input, cast_to=bytes)
-                    try:
-                        index = stack_smash.index(b"O`Connor")
-                        s.symbolic_padding = stack_smash[:index]
-                        simgr.stashes["mem_corrupt"].append(path)
-                    except:
-                        print("do a thing")
+                        
+                    index = stack_smash.index(b"AAAAAAAA")
+                    s.symbolic_padding = stack_smash[:index]
+                    simgr.stashes["mem_corrupt"].append(path)
+
                 simgr.stashes["unconstrained"].remove(path)
                 simgr.drop(stash="active")
 
@@ -198,5 +197,5 @@ class get2overflow:
         try:
             return len(s.symbolic_padding)
         except:
-            return "Fuck"
-'''
+            return 0
+        '''
