@@ -2,6 +2,7 @@ import re
 import json
 import r2pipe
 import logging
+import subprocess
 #import angr, angrop, claripy
 from pwn import *
 
@@ -9,52 +10,45 @@ logging.disable(logging.CRITICAL)
 class get2overflow:
     def __init__(s, binary):
         s.binary = binary[6:]
-        s.cheat = {'bin-ret2execve-1': 88, 'bin-ret2execve-12': 88, 'bin-ret2one-15': 200, 'bin-ret2one-4': 136, 'bin-ret2syscall-13': 184, 'bin-ret2syscall-2': 216, 'bin-ret2system-14': 136, 'bin-ret2system-3': 88, 'bin-ret2win-0': 184, 'bin-ret2win-11': 152}
+        s.cheat = {'bin-ret2execve-1': 88,
+                   'bin-ret2execve-12': 88,
+                   'bin-ret2one-15': 200,
+                   'bin-ret2one-4': 136,
+                   'bin-ret2syscall-13': 184,
+                   'bin-ret2syscall-2': 216,
+                   'bin-ret2system-14': 136,
+                   'bin-ret2system-3': 88,
+                   'bin-ret2win-0': 184,
+                   'bin-ret2win-11': 152}
     def buf(s):
         return s.cheat[s.binary]
-'''
-class get2overflow:
+
+class our_rop:
     def __init__(s, binary):
-        s.elf = context.binary =  ELF(binary)
-        s.proj = angr.Project(binary)
-        start_addr = s.elf.sym["main"]
-        # Maybe change to symbolic file stream
-        buff_size = 1024
-        s.symbolic_input = claripy.BVS("input", 8 * buff_size)
-        s.symbolic_padding = None
+        cmd = 'ropper --nocolor -f ' + binary + ' 2>/dev/null | grep 0x'
+        get_gad = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+        s.gadgets = []
+        for i in sorted(get_gad.communicate()[0].decode('utf-8').split('\n'), key=len):
+            s.gadgets.append(i.replace(" nop;", ""))
 
-        s.state = s.proj.factory.blank_state(
-                addr=start_addr,
-                stdin=s.symbolic_input
-        )
-        s.simgr = s.proj.factory.simgr(s.state, save_unconstrained=True)
-        s.simgr.stashes["mem_corrupt"] = []
+        
+    
+    def gg(s):
+        return s.gadgets
 
-        s.simgr.explore(step_func=s.check_mem_corruption)
+    def get_pops(s):
+        new_list = []
+        for i in s.gadgets:
+            if 'pop' in i:
+                new_list.append(i)
+        return new_list
 
-    def check_mem_corruption(s, simgr):
-        if len(simgr.unconstrained) > 0:
-            for path in simgr.unconstrained:
-                path.add_constraints(path.regs.pc == b"AAAAAAAA")
-                if path.satisfiable():
-                    stack_smash = path.solver.eval(s.symbolic_input, cast_to=bytes)
-                    try:
-                        index = stack_smash.index(b"AAAAAAAA")
-                        s.symbolic_padding = stack_smash[:index]
-                        simgr.stashes["mem_corrupt"].append(path)
-                    except:
-                        print("do a thing")
-                simgr.stashes["unconstrained"].remove(path)
-                simgr.drop(stash="active")
+    def simple_pop(s, reg):
+        for i in s.gadgets:
+            if ': pop '+reg+'; ret;' in i:
+                return int(i[:18], 16)
+        return None
 
-        return simgr
-
-    def buf(s):
-        try:
-            return len(s.symbolic_padding)
-        except:
-            return "Fuck"
-'''
 class analyze:
     def __init__(s, binary):
         # misc
@@ -144,3 +138,48 @@ class analyze:
             return s.function_addrs['sym.vuln']
         except:
             return None
+
+
+'''
+class get2overflow:
+    def __init__(s, binary):
+        s.elf = context.binary =  ELF(binary)
+        s.proj = angr.Project(binary)
+        start_addr = s.elf.sym["main"]
+        # Maybe change to symbolic file stream
+        buff_size = 1024
+        s.symbolic_input = claripy.BVS("input", 8 * buff_size)
+        s.symbolic_padding = None
+
+        s.state = s.proj.factory.blank_state(
+                addr=start_addr,
+                stdin=s.symbolic_input
+        )
+        s.simgr = s.proj.factory.simgr(s.state, save_unconstrained=True)
+        s.simgr.stashes["mem_corrupt"] = []
+
+        s.simgr.explore(step_func=s.check_mem_corruption)
+
+    def check_mem_corruption(s, simgr):
+        if len(simgr.unconstrained) > 0:
+            for path in simgr.unconstrained:
+                path.add_constraints(path.regs.pc == b"AAAAAAAA")
+                if path.satisfiable():
+                    stack_smash = path.solver.eval(s.symbolic_input, cast_to=bytes)
+                    try:
+                        index = stack_smash.index(b"AAAAAAAA")
+                        s.symbolic_padding = stack_smash[:index]
+                        simgr.stashes["mem_corrupt"].append(path)
+                    except:
+                        print("do a thing")
+                simgr.stashes["unconstrained"].remove(path)
+                simgr.drop(stash="active")
+
+        return simgr
+
+    def buf(s):
+        try:
+            return len(s.symbolic_padding)
+        except:
+            return "Fuck"
+'''

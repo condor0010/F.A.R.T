@@ -2,11 +2,13 @@ import os
 from pwn import *
 from fart import *
 
-path = './bins3/'
-for binary in os.listdir(path):
-    thingy = get2overflow(path + binary)
-    print(binary+":")
-    print(thingy.cheat[binary])
+#path = './bins3/'
+#for binary in os.listdir(path):
+thingy = our_rop('./bins3/bin-ret2execve-12')
+
+regs = ['rax', 'rdi', 'rsi', 'rdx', 'r10', 'r8', 'r9']
+for i in regs:
+    print(thingy.simple_pop(i))
 
 
 '''
