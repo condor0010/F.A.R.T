@@ -50,8 +50,16 @@ class our_rop:
     def other_pop(s, reg):
         for i in s.gadgets:
             if 'pop '+reg in i:
-                return int(i[:18], 16)
+                return i #int(i[:18], 16)
         return None
+
+    def test(s, reg):
+        for i in s.gadgets:
+            if 'pop '+reg in i:
+                return i #int(i[:18], 16)
+        return None
+
+
 
 class analyze:
     def __init__(s, binary):
@@ -142,8 +150,13 @@ class analyze:
             return s.function_addrs['sym.vuln']
         except:
             return None
-
-
+    def has_leak(s):
+        io = process(s.binary)
+        io.sendline(b'%1p')
+        try:
+            return '0x' in io.recvline().encode('utf-8')
+        except:
+            return True
 '''
 class get2overflow:
     def __init__(s, binary):
@@ -167,11 +180,11 @@ class get2overflow:
     def check_mem_corruption(s, simgr):
         if len(simgr.unconstrained) > 0:
             for path in simgr.unconstrained:
-                path.add_constraints(path.regs.pc == b"AAAAAAAA")
+                path.add_constraints(path.regs.pc == b"O`Connor")
                 if path.satisfiable():
                     stack_smash = path.solver.eval(s.symbolic_input, cast_to=bytes)
                     try:
-                        index = stack_smash.index(b"AAAAAAAA")
+                        index = stack_smash.index(b"O`Connor")
                         s.symbolic_padding = stack_smash[:index]
                         simgr.stashes["mem_corrupt"].append(path)
                     except:
