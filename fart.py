@@ -31,8 +31,6 @@ class our_rop:
         for i in sorted(get_gad.communicate()[0].decode('utf-8').split('\n'), key=len):
             s.gadgets.append(i.replace(" nop;", ""))
 
-        
-    
     def gg(s):
         return s.gadgets
 
@@ -46,6 +44,12 @@ class our_rop:
     def simple_pop(s, reg):
         for i in s.gadgets:
             if ': pop '+reg+'; ret;' in i:
+                return int(i[:18], 16)
+        return None
+    
+    def other_pop(s, reg):
+        for i in s.gadgets:
+            if 'pop '+reg in i:
                 return int(i[:18], 16)
         return None
 

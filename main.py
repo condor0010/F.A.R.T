@@ -6,9 +6,15 @@ from fart import *
 #for binary in os.listdir(path):
 thingy = our_rop('./bins3/bin-ret2execve-12')
 
-regs = ['rax', 'rdi', 'rsi', 'rdx', 'r10', 'r8', 'r9']
-for i in regs:
-    print(thingy.simple_pop(i))
+args = ['rax', 'rdi', 'rsi', 'rdx', 'r10', 'r8', 'r9']
+print("simple check")
+for arg in args:
+    print("    {} {}".format(arg, thingy.simple_pop(arg)))
+
+print("other check")
+for arg in args:
+    print("    {} {}".format(arg, thingy.other_pop(arg)))
+
 
 
 '''
