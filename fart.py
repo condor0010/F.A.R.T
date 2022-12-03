@@ -7,58 +7,38 @@ import angr, angrop, claripy
 from pwn import *
 
 logging.disable(logging.CRITICAL)
-class get2overflow:
-    def __init__(s, binary):
-        s.binary = binary[6:]
-        s.cheat = {'bin-ret2execve-1': 88,
-                   'bin-ret2execve-12': 88,
-                   'bin-ret2one-15': 200,
-                   'bin-ret2one-4': 136,
-                   'bin-ret2syscall-13': 184,
-                   'bin-ret2syscall-2': 216,
-                   'bin-ret2system-14': 136,
-                   'bin-ret2system-3': 88,
-                   'bin-ret2win-0': 184,
-                   'bin-ret2win-11': 152}
-    def buf(s):
-        return s.cheat[s.binary]
-
 class our_rop:
-    def __init__(s, binary):
-        cmd = 'ropper --nocolor -f ' + binary + ' 2>/dev/null | grep 0x'
-        get_gad = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+    def __init__(s, analyze):
+        cmd = 'ropper --nocolor -f ' + analyze.binary + ' 2>/dev/null | grep 0x'
+        raw_gadgets = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+        
         s.gadgets = []
-        for i in sorted(get_gad.communicate()[0].decode('utf-8').split('\n'), key=len):
+        for i in sorted(raw_gadgets.communicate()[0].decode('utf-8').split('\n'), key=len):
             s.gadgets.append(i.replace(" nop;", ""))
-
-    def gg(s):
+    
+    def get_gadgets(s):
         return s.gadgets
 
     def get_pops(s):
-        new_list = []
+        pops = []
         for i in s.gadgets:
-            if 'pop' in i:
-                new_list.append(i)
-        return new_list
+            pops.append(i) if 'pop' in i else next
+        return pops
 
-    def simple_pop(s, reg):
-        for i in s.gadgets:
-            if ': pop '+reg+'; ret;' in i:
-                return int(i[:18], 16)
-        return None
+    def num_pops(s, string):
+        return string.count('pop')
+        
+    def pop_reg(s, reg):
+        for i in s.get_pops():
+            if ': pop ' + reg + '; ret;' in i:
+                return [i.split(':')[0], 1] # return address
+            elif 'pop ' + reg in i:
+                return [i.split(':')[0], s.num_pops(i)]
     
-    def other_pop(s, reg):
-        for i in s.gadgets:
-            if 'pop '+reg in i:
-                return i #int(i[:18], 16)
-        return None
 
-    def check_args(s, num):
-        for i in s.gadgets:
-            if 'pop '+reg in i:
-                return i.count('pop') #int(i[:18], 16)
-        return None
 
+
+        
 
 class analyze:
     def __init__(s, binary):
@@ -149,6 +129,7 @@ class analyze:
             return s.function_addrs['sym.vuln']
         except:
             return None
+    
     def has_leak(s):
         io = process(s.binary)
         io.sendline(b'%1p')
@@ -157,13 +138,13 @@ class analyze:
         except:
             return True
 
-'''
+
 class get2overflow:
     def __init__(s, binary):
         s.elf = context.binary =  ELF(binary)
         s.proj = angr.Project(binary)
         start_addr = s.elf.sym["main"]
-        # Maybe change to symbolic file stream
+
         buff_size = 1024
         s.symbolic_input = claripy.BVS("input", 8 * buff_size)
         s.symbolic_padding = None
@@ -198,4 +179,39 @@ class get2overflow:
             return len(s.symbolic_padding)
         except:
             return 0
-        '''
+
+'''
+class our_rop:
+    def __init__(s, binary):
+        
+        # janky subprosses stuff
+        s.args = ['rdi', 'rsi', 'rdx']
+        cmd = 'ropper --nocolor -f ' + binary + ' 2>/dev/null | grep 0x'
+        get_gad = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+        s.gadgets = []
+        for i in sorted(get_gad.communicate()[0].decode('utf-8').split('\n'), key=len):
+            s.gadgets.append(i.replace(" nop;", ""))
+
+    def simple_pop(s, reg):
+        for i in s.gadgets:
+            if ': pop '+reg+'; ret;' in i:
+                return int(i[:18], 16)
+        return None
+    def other_pop(s, reg):
+        for i in s.gadgets:
+            if 'pop '+reg in i:
+                return i #int(i[:18], 16)
+        return None
+
+    def check_args(s, reg):
+        for i in s.gadgets:
+            if 'pop '+reg in i:
+                return i.count('pop')
+        return None
+    def simple_args(s):
+        ret = 0
+        for i in s.args:
+            ret += check_args(s, i)
+        if
+
+'''
