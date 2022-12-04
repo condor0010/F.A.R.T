@@ -23,6 +23,20 @@ MM88MMM ,adPPYYba, 8b,dPPYba, MM88MMM
 
 fire = "\U0001F525"
 
+gs = '''
+b main
+continue
+'''
+context.terminal = ["tmux", "splitw", "-h"]
+
+def start(binary):
+    e = context.binary = ELF(binary)
+    if args.GDB:
+        return gdb.debug(e.path, gdbscript=gs)
+    else:
+        return process(e.path)
+
+
 def check_vuln_type(binary):
     properties = {} 
     if binary.has_binsh():
@@ -95,7 +109,7 @@ def check_vuln_type(binary):
 
 def exploit(analyize, properties):
     binary = analyze.binary
-    p = process(binary)
+    p = start(binary)
     payload = None
     
     rop = Fart_ROP.ROP(analyze, properties)
