@@ -52,7 +52,7 @@ if __name__ == "__main__":
     binary = args.BIN
 
     analyze = Analyze(binary)
-    properties = check_vuln_type(analyze)
+    properties = check_vuln_type(binary)
 
     #TODO: Create a function that determines what to do given properties
     if properties["win"]:

