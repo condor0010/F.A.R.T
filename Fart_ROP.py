@@ -16,12 +16,13 @@ class ROP:
         return payload
 
     def ret2execve(self):
-        pass
+        payload = cyclic(self.offset)
+        
 
     def ret2syscall(self):
         pass
 
-    def supporting_functions_here(self):
+    def supporting_functions_here(self): # ---------------------------------------------
         print("example support function")
 
     def find_gadgets(self):
@@ -29,6 +30,23 @@ class ROP:
         raw_gadgets = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         for i in sorted(raw_gadgets.communicate()[0].decode("utf-8").split("\n"), key=len):
             self.gadgets.append(i.replace(" nop;", ""))
+
+    def get_gadgets(self):
+        return self.gadgets
+
+    def get_pops(self):
+        pops = []
+        for i in self.gadgets
+
+    def num_pops(self, string):
+        return string.count('pop')
+    
+    def pop_reg(self, reg):
+        for i in self.get_pops():
+            if ': pop ' + reg + "; ret;" in i:
+                return [i.split(":")[0], 1] # return address
+            elif "pop " + reg in i:
+                return [i.split(":")[0], self.num_pops(i)]
 
 class Get2overflow:
     def __init__(s, binary):

