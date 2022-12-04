@@ -44,6 +44,11 @@ class our_rop:
         for i in range(s.pop_reg(reg)[1]):
             chain += p64(int(val))
         return chain
+    def get_syscall(s):
+        for i in s.gadgets:
+            if 'syscall' in i:
+                return int(i.split(':')[0], 16)
+        return None
 
         
 
