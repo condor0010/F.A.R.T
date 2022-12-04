@@ -71,7 +71,13 @@ class Analyze:
     # TODO: Fix, because function called gadgets may not exist
     def has_rop(self):
         return any((match := re.compile(r'gadget*').match(i)) for i in self.functions)
-    
+
+    def has_canary(self):
+        return "true" in self.r2.cmd('iI~canary')
+
+    def has_nx(self):
+        return 'true' in self.r2.cmd('iI~NX')
+
     def win_has_args(self):
         if self.has_win():
             return "" != self.r2.cmd("pdf @ sym.win | grep cmp")

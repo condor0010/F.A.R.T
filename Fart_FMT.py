@@ -5,8 +5,12 @@ class FMT:
         self.analysis = analysis
         self.filename = analysis.binary
         self.e = ELF(self.filename)
+    
+    def build_exploit(self):
+        pass
 
     def stack_leak(self):
+        
         pass
 
     def libc_leak(self):
