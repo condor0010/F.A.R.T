@@ -57,5 +57,7 @@ if __name__ == "__main__":
     #TODO: Create a function that determines what to do given properties
     if properties["win"]:
         #TODO: Move this stuff to ROP
-        wtf = Get2overflow(binary)
-        offset = wtf.buf()
+        #wtf = Get2overflow(binary)
+        #offset = wtf.buf()
+        rop = ROP.ROP(binary, properties)
+        rop.ret2win()
