@@ -77,13 +77,9 @@ class analyze:
     def __init__(s, binary):
         # misc
         s.binary = binary
-        #s.fastcall = []
-
-        # angr/ angrop setup
-        #s.angry = angr.Project(s.binary)
-        #s.angry_rop = s.angry.analyses.ROP()
-        #s.angry_rop.find_gadgets()
-        #s.chain = b''
+        
+        # pwntools setup
+        s.elf = ELF(binary)
 
         # r2pipe setup
         s.r2 = r2pipe.open(s.binary) # open binary
@@ -100,13 +96,23 @@ class analyze:
         
     # has stuff
     def has_binsh(s):
-        return '/bin/sh' in s.strings
+        for i in s.strings:
+            if '/bin/sh' in i:
+                return True
+        return False
 
     def has_flagtxt(s):
-        return 'flag.txt' in s.strings
+        for i in s.strings:
+            if 'flag.txt' in i:
+                return True
+        return False
+
 
     def has_catflagtxt(s):
-        return 'cat flag.txt' in s.strings
+        for i in s.strings:
+            if 'cat flag.txt' in i:
+                return True
+        return False
 
     def has_gets(s):
         return 'sym.imp.gets' in s.functions
@@ -134,21 +140,21 @@ class analyze:
     
     # get stuff
     def get_binsh(s):
-        try:
-            return s.string_addrs['/bin/sh']
-        except:
+          if s.has_binsh():
+            return next(s.elf.search(b'/bin/sh\0'))
+          else:
             return None
     
     def get_flagtxt(s):
-        try:
-            return s.string_addrs['flag.txt']
-        except:
+         if s.has_flagtxt():
+            return next(s.elf.search(b'flag.txt\0'))
+         else:
             return None
     
     def get_catflagtxt(s):
-        try:
-            return s.string_addrs['cat flag.txt']
-        except:
+        if s.has_catflagtxt():
+            return next(s.elf.search(b'cat flag.txt\0'))
+        else:
             return None
     
     def get_win(s):
@@ -162,7 +168,13 @@ class analyze:
             return s.function_addrs['sym.vuln']
         except:
             return None
+    def get_exec(s):
+        try:
+            return s.function_addrs['sym.execve']
+        except:
+            return None
     
+
     def has_leak(s):
         io = process(s.binary)
         io.sendline(b'%1p')
