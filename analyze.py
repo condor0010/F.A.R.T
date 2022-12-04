@@ -9,39 +9,10 @@ from pwn import *
 logging.getLogger('pwnlib').setLevel(logging.WARNING)
 logging.disable(logging.CRITICAL)
 
-class Our_rop:
-    def __init__(s, binary):
-        cmd = 'ropper --nocolor -f ' + binary + ' 2>/dev/null | grep 0x'
-        get_gad = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
-        s.gadgets = []
-        for i in sorted(get_gad.communicate()[0].decode('utf-8').split('\n'), key=len):
-            s.gadgets.append(i.replace(" nop;", ""))
-
-    def gg(s):
-        return s.gadgets
-
-    def get_pops(s):
-        new_list = []
-        for i in s.gadgets:
-            if 'pop' in i:
-                new_list.append(i)
-        return new_list
-
-    def simple_pop(s, reg):
-        for i in s.gadgets:
-            if ': pop '+reg+'; ret;' in i:
-                return int(i[:18], 16)
-        return None
-    
-    def other_pop(s, reg):
-        for i in s.gadgets:
-            if 'pop '+reg in i:
-                return int(i[:18], 16)
-        return None
-
 class Analyze:
     def __init__(self, binary):
         self.binary = binary
+        self.elf = ELF(binary)
 
         # r2pipe setup
         self.r2 = r2pipe.open(self.binary) # open binary
@@ -58,13 +29,22 @@ class Analyze:
         
     # has stuff
     def has_binsh(self):
-        return '/bin/sh' in self.strings
+        for i in self.strings:
+            if "/bin/sh" in i:
+                return True
+        return False
 
     def has_flagtxt(self):
-        return 'flag.txt' in self.strings
+        for i in self.strings:
+            if "flag.txt" in i:
+                return True
+        return False
 
     def has_catflagtxt(self):
-        return 'cat flag.txt' in self.strings
+        for i in self.strings:
+            if "cat flag.txt" in i:
+                return True
+        return False
 
     def has_gets(self):
         return 'sym.imp.gets' in self.functions
@@ -93,13 +73,22 @@ class Analyze:
     
     # get stuff
     def get_binsh(self):
-        return self.string_addrs['/bin/sh']
-    
+        if self.has_binsh():
+            return next(self.elf.search(b"/bin/sh\0"))
+        else:
+            return None
+
     def get_flagtxt(self):
-        return self.string_addrs['flag.txt']
-    
+        if self.has_flagtxt():
+            return next(self.elf.search(b"flag.txt\0"))
+        else:
+            return None
+
     def get_catflagtxt(self):
-        return self.string_addrs['cat flag.txt']
+        if self.has_catflagtxt():
+            return next(self.elf.search(b"cat flag.txt\0"))
+        else:
+            return None
     
     def get_win(self):
         return self.function_addrs['sym.win']

