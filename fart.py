@@ -70,7 +70,7 @@ class our_rop:
 
         return None
     def satisfy_win(s):
-        arg = s.fill_reg('rdi', s.analyze.get_win_arg())
+        arg = s.fill_reg('rdi', int(s.analyze.get_win_arg(), 16))
         print(arg)
         return arg
 

