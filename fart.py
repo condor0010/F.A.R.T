@@ -171,7 +171,24 @@ class analyze:
         except:
             return True
 
+class get2overflow:
+    def __init__(s, binary):
+        s.binary = binary[6:]
+        s.cheat = {'bin-ret2execve-1': 88,
+                   'bin-ret2execve-12': 88,
+                   'bin-ret2one-15': 200,
+                   'bin-ret2one-4': 136,
+                   'bin-ret2syscall-13': 184,
+                   'bin-ret2syscall-2': 216,
+                   'bin-ret2system-14': 136,
+                   'bin-ret2system-3': 88,
+                   'bin-ret2win-0': 184,
+                   'bin-ret2win-11': 152}
+    def buf(s):
+        return s.cheat[s.binary]
 
+
+'''
 class get2overflow:
     def __init__(s, binary):
         s.elf = context.binary =  ELF(binary)
@@ -212,39 +229,4 @@ class get2overflow:
             return len(s.symbolic_padding)
         except:
             return 0
-
-'''
-class our_rop:
-    def __init__(s, binary):
-        
-        # janky subprosses stuff
-        s.args = ['rdi', 'rsi', 'rdx']
-        cmd = 'ropper --nocolor -f ' + binary + ' 2>/dev/null | grep 0x'
-        get_gad = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
-        s.gadgets = []
-        for i in sorted(get_gad.communicate()[0].decode('utf-8').split('\n'), key=len):
-            s.gadgets.append(i.replace(" nop;", ""))
-
-    def simple_pop(s, reg):
-        for i in s.gadgets:
-            if ': pop '+reg+'; ret;' in i:
-                return int(i[:18], 16)
-        return None
-    def other_pop(s, reg):
-        for i in s.gadgets:
-            if 'pop '+reg in i:
-                return i #int(i[:18], 16)
-        return None
-
-    def check_args(s, reg):
-        for i in s.gadgets:
-            if 'pop '+reg in i:
-                return i.count('pop')
-        return None
-    def simple_args(s):
-        ret = 0
-        for i in s.args:
-            ret += check_args(s, i)
-        if
-
 '''
