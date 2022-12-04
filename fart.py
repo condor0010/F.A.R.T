@@ -1,4 +1,4 @@
-#!/bin/pythoni
+#!/usr/bin/env python3
 from pwn import *
 import sys
 from analyze import *
@@ -18,7 +18,7 @@ MM88MMM ,adPPYYba, 8b,dPPYba, MM88MMM
   88    88,    ,88 88           88,    
   88    `"8bbdP"Y8 88           "Y888
   
-  Format and ROP Toolkit
+  Format and ROP Toolkit \U0001F4A8
 '''
 
 def check_vuln_type(binary):
