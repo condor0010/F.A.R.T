@@ -148,6 +148,9 @@ class analyze:
     
     def has_canary(s):
         return 'true' in s.r2.cmd('iI~canary')
+    def has_nx(s):
+        return 'true' in s.r2.cmd('iI~NX')
+
     
     # get stuff
     def get_binsh(s):
