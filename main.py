@@ -8,6 +8,19 @@ import time
 
 logging.getLogger('pwnlib').setLevel(logging.WARNING)
 
+banner = '''
+   ad88                                
+  d8"                           ,d     
+  88                            88     
+MM88MMM ,adPPYYba, 8b,dPPYba, MM88MMM  
+  88    ""     `Y8 88P'   "Y8   88     
+  88    ,adPPPPP88 88           88     
+  88    88,    ,88 88           88,    
+  88    `"8bbdP"Y8 88           "Y888
+  
+  Format and ROP Toolkit
+'''
+
 def check_vuln_type(binary):
     properties = {} 
     if binary.has_binsh():
@@ -93,10 +106,16 @@ def exploit(binary, properties):
         if properties["binsh"]:
             p.sendline(b"cat flag.txt")
         p.interactive()
+        print("\U0001F525"*30)
 
 if __name__ == "__main__":
     binary = args.BIN
-
+    if not binary:
+        print("Usage: ./fart.py BIN=<path to binary>")
+        sys.exit(-1)
+        
+    print(banner)
+    
     analyze = Analyze(binary)
     properties = check_vuln_type(analyze)
     exploit(binary, properties)
