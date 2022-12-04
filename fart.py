@@ -8,6 +8,9 @@ from pwn import *
 
 logging.disable(logging.CRITICAL)
 class our_rop:
+    #TODO
+    # use quing system, must use bigger pops first
+    # put in check to avoid overwrighting previous stems
     def __init__(s, analyze):
         cmd = 'ropper --nocolor -f ' + analyze.binary + ' 2>/dev/null | grep 0x'
         raw_gadgets = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
@@ -34,10 +37,13 @@ class our_rop:
                 return [i.split(':')[0], 1] # return address
             elif 'pop ' + reg in i:
                 return [i.split(':')[0], s.num_pops(i)]
-    
-    def fill_reg(s, regs vals):
-        for i in regs:
 
+    def fill_reg(s, reg, val):
+        chain = b''
+        chain += p64(int(s.pop_reg(reg)[0], 16))
+        for i in range(s.pop_reg(reg)[1]):
+            chain += p64(int(val))
+        return chain
 
         
 

