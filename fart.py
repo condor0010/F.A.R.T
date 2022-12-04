@@ -145,7 +145,9 @@ class analyze:
         if s.has_win():
             return '' != s.r2.cmd('pdf @ sym.win | grep cmp')
         return False
-
+    
+    def has_canary(s):
+        return 'true' in s.r2.cmd('iI~canary')
     
     # get stuff
     def get_binsh(s):
