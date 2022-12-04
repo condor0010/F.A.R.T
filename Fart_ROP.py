@@ -86,7 +86,12 @@ class ROP:
             if "syscall" in i:
                 return int(i.split(":")[0], 16)
         return None
+    
+    def realign(self):
+        return p64(self.analyze.get_fini())
 
+    def satisfy_win(self):
+        return self.fill_reg("rdi", self.analyze.get_win_arg())
 
 class Get2overflow:
     def __init__(s, binary):
@@ -117,15 +122,13 @@ class Get2overflow:
                         index = stack_smash.index(b"AAAAAAAA")
                         s.symbolic_padding = stack_smash[:index]
                         simgr.stashes["mem_corrupt"].append(path)
-                    except:
-                        print("do a thing")
+                    except ValueError:
+                        print("[-] Failed to get offset!")
+                        sys.exit(-1)
                 simgr.stashes["unconstrained"].remove(path)
                 simgr.drop(stash="active")
 
         return simgr
 
     def buf(s):
-        try:
-            return len(s.symbolic_padding)
-        except:
-            return "Fuck"
+        return len(s.symbolic_padding)

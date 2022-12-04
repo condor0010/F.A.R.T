@@ -60,7 +60,8 @@ class Analyze:
 
     def has_syscall(self):
         return 'sym.imp.syscall' in self.functions
-    
+   
+    # Send %p
     def has_format(self):
         return not self.has_win() and not self.has_rop()
     
@@ -71,6 +72,11 @@ class Analyze:
     def has_rop(self):
         return any((match := re.compile(r'gadget*').match(i)) for i in self.functions)
     
+    def win_has_args(self):
+        if self.has_win():
+            return "" != self.r2.cmd("pdf @ sym.win | grep cmp")
+        return False
+
     # get stuff
     def get_binsh(self):
         if self.has_binsh():
@@ -96,12 +102,17 @@ class Analyze:
     def get_vuln(self):
         return self.function_addrs['sym.vuln']
 
+    def get_fini(self):
+        return self.function_addrs["sym._fini"]
+
     def has_leak(self):
         p = process(self.binary)
         p.sendline(b"%1p")
         try:
-            return "0x" in p.recvline().encode("utf-8")
+            p.recvuntil(b"<<<")
+            return "0x" in p.recvline().decode("utf-8")
         # TODO: Find the real exception and handle it
         except Exception as e:
+            print(e.__class__.__name__)
             print(e)
             return False
