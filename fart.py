@@ -162,11 +162,13 @@ class analyze:
             return s.function_addrs['sym.vuln']
         except:
             return None
+
     def get_exec(s):
         try:
             return s.function_addrs['sym.execve']
         except:
             return None
+
     def get_fini(s):
         return s.function_addrs['sym._fini']
 
