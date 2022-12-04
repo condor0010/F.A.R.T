@@ -46,6 +46,7 @@ def exploit(analyize):
         send(rop.build_exploit(), p, analyze)
     else:
         fmt = Fart_FMT.FMT(analyze)
+        send(fmt.build_exploit(), p, analyze)
 
 def send(payload, p, analyze):
     if payload:
