@@ -21,6 +21,8 @@ MM88MMM ,adPPYYba, 8b,dPPYba, MM88MMM
   Format and ROP Toolkit \U0001F4A8
 '''
 
+fire = "\U0001F525"
+
 def check_vuln_type(binary):
     properties = {} 
     if binary.has_binsh():
@@ -107,8 +109,8 @@ def exploit(analyize, properties):
         if properties["binsh"]:
             sleep(0.1)
             p.sendline(b"cat flag.txt")
-        p.interactive()
-        print("\U0001F525"*30)
+        p.recvuntil(b"flag")
+        print(fire + " flag" + p.recvuntil(b"}").decode("utf-8") + " " + fire)
 
 if __name__ == "__main__":
     binary = args.BIN
