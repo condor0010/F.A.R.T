@@ -1,10 +1,9 @@
 from pwn import *
 
 class FMT:
-    def __init__(self, analysis, properties):
+    def __init__(self, analysis):
         self.analysis = analysis
         self.filename = analysis.binary
-        self.properties = properties
         self.e = ELF(self.filename)
 
     def stack_leak(self):

