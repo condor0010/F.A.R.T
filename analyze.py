@@ -2,8 +2,6 @@ import re
 import json
 import r2pipe
 import logging
-import subprocess
-import angr, angrop, claripy
 from pwn import *
 
 logging.getLogger('pwnlib').setLevel(logging.WARNING)

