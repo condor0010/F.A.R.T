@@ -17,4 +17,7 @@ for i in range(20):
         next
     p.close()
 
-print(''.join(hex_vals))
+vals = ''.join(hex_vals)
+offs = vals.find("flag")
+end = vals.find("}")
+print(vals[offs:end+1])
