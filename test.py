@@ -8,9 +8,11 @@ logging.getLogger('pwnlib').setLevel(logging.WARNING)
 
 path = './bins3/'
 for binary in os.listdir(path):
+    binary = path + binary
     print(binary+":")
     
-    a = analyze(path + binary)
-    r  = our_rop(a)
+    f_anal = analyze(binary)
+    f_rop = our_rop(f_anal)
     
-    print(r.fill_reg('rsi', b'/bin/sh\0'))
+    print(f_rop.ss())
+

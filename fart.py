@@ -20,6 +20,21 @@ class our_rop:
         for i in sorted(raw_gadgets.communicate()[0].decode('utf-8').split('\n'), key=len):
             s.gadgets.append(i.replace(" nop;", ""))
     
+    def ss(s):
+        try:
+            p = process(s.analyze.binary)
+            p.sendline(cyclic(1024,n=8))
+            p.wait()
+            core = p.corefile
+            p.close()
+            os.remove(core.file.name)
+            padding = cyclic_find(core.read(core.rsp, 8),n=8)
+            return (padding)
+        except:
+            get_buf = get2overflow(s.analyze.binary)
+            return get_buf.buf()
+
+        
     def get_gadgets(s):
         return s.gadgets
 
@@ -174,8 +189,7 @@ class analyze:
 
     
     def get_win_arg(s):
-        val = s.r2.cmd('pdf @ sym.win | grep cmp | awk \'{print $NF}\'')
-        return int(val,16) if val != '' else None
+        return s.r2.cmd('pdf @ sym.win | grep cmp | awk \'{print $NF}\'')
 
 
     def has_leak(s):
