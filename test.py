@@ -13,6 +13,4 @@ for binary in os.listdir(path):
     a = analyze(path + binary)
     r  = our_rop(a)
     
-    print("RDI ", r.pop_reg('rdi'))
-    print("RSI ", r.pop_reg('rsi'))
-    print("RDX ", r.pop_reg('rdx'))
+    print(r.fill_reg('rsi', b'/bin/sh\0'))
