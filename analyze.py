@@ -3,7 +3,7 @@ import json
 import r2pipe
 import logging
 import subprocess
-import angr, angrop, claripy
+import angr, claripy
 from pwn import *
 
 logging.getLogger('pwnlib').setLevel(logging.WARNING)
@@ -82,6 +82,12 @@ class Analyze:
         if self.has_win():
             return "" != self.r2.cmd("pdf @ sym.win | grep cmp")
         return False
+    
+    def vuln_has_args(self):
+        if self.has_win():
+            return "" != self.r2.cmd("pdf @ sym.vuln | grep cmp")
+        return False
+    
 
     # get stuff
     def get_binsh(self):
