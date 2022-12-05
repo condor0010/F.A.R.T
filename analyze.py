@@ -87,6 +87,11 @@ class Analyze:
         if self.has_win():
             return "" != self.r2.cmd("pdf @ sym.vuln | grep cmp")
         return False
+
+    def get_vuln_args(self):
+        if self.has_win():
+            return self.r2.cmd("pdf @ sym.vuln | grep cmp | awk \'{print $NF}\'")
+        return None
     
 
     # get stuff
@@ -116,7 +121,7 @@ class Analyze:
 
     def get_fini(self):
         return self.function_addrs["sym._fini"]
-
+    
     def has_leak(self):
         p = process(self.binary)
         p.sendline(b"%1p")
