@@ -47,6 +47,9 @@ class ROP:
         payload += p64(self.e.sym["win"])
         
         return payload
+    
+    def ret2win_with_args():
+        pass
 
     def ret2execve(self):
         payload = cyclic(self.offset)
