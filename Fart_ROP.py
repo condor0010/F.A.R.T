@@ -170,8 +170,8 @@ class ROP:
         return None
     
     def get_primitive_regs(self):
-        prim = self.get_primitives().split('mov qword ptr')
-        print(prim[1].split(';')[0].strip('[').split(','))
+        prim = self.get_primitives().split('mov qword ptr')[1].split(';')[0].split(',')
+        print(prim)
 
 class Get2overflow:
     def __init__(s, binary):
