@@ -135,10 +135,10 @@ class ROP:
         return None
     
     def realign(self):
-        return p64(self.analyze.get_fini())
+        return p64(self.analysis.get_fini())
 
     def satisfy_win(self):
-        return self.fill_reg("rdi", int(self.analyze.get_win_arg(), 16))
+        return self.fill_reg("rdi", int(self.analysis.get_win_arg(), 16))
     
     def get_primitives(self):
         print("inside get prim")
