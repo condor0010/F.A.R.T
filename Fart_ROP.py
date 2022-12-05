@@ -169,9 +169,10 @@ class ROP:
                 return i
         return None
     
+    # 0th is write_mem, 1st is other adddr
     def get_primitive_regs(self):
-        prim = self.get_primitives().split('mov qword ptr')[1].split(';')[0].split(',')
-        print(prim)
+        prim = self.get_primitives().split('mov qword ptr')[1].split(';')[0][2:].split(',')
+        return [prim[0][:2], prim[1]]
 
 class Get2overflow:
     def __init__(s, binary):
