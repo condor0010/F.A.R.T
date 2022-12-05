@@ -13,21 +13,15 @@ class ROP:
         self.e = ELF(self.filename)
         self.gadgets = []
         self.find_gadgets()
-        self.angrop_init()
         self.libc = "/opt/libc.so.6"
-
-    def angrop_init(self):
+        # angrop stuff
         self.angr_proj = angr.Project(self.analysis.binary)
         self.angr_rop  = self.angr_proj.analyses.ROP()
-        self.angr_rop.find_gadgets()
-
-    def angrop_set_regs(self, args):
-        return self.angr_rop.set_regs(args)
-    def angrop_write_to_mem(self, addr, val):
-        return self.angr_rop.write_to_mem(addr, val)
-    def angrop_write_binsh_to_mem(self):
-        return self.angrop_write_to_mem(self.get_writeable_mem(), b"/bin/sh\0")
-        
+        self.angr_rop.find_gadgets_single_threaded()
+    
+    def write_binsh_to_mem(self):
+        return self.angr_rop.write_to_mem(self.get_writeable_mem(), b"/bin/sh\0").payload_str()
+    
 
     def build_exploit(self):
         payload = None
