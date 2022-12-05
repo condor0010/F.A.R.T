@@ -76,6 +76,9 @@ class Analyze:
     def has_nx(self):
         return 'true' in self.r2.cmd('iI~NX')
 
+    def has_putchar(self):
+        return 'sym.imp.putchar' in self.functions
+
     def win_has_args(self):
         if self.has_win():
             return "" != self.r2.cmd("pdf @ sym.win | grep cmp")
