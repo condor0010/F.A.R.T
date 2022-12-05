@@ -126,7 +126,5 @@ class Analyze:
             p.recvuntil(b"<<<")
             return "0x" in p.recvline().decode("utf-8")
         # TODO: Find the real exception and handle it
-        except Exception as e:
-            print(e.__class__.__name__)
-            print(e)
+        except EOFError as e:
             return False

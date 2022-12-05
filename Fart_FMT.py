@@ -2,6 +2,8 @@ from pwn import *
 
 logging.getLogger('pwnlib').setLevel(logging.WARNING)
 
+fire = "\U0001F525"
+
 class FMT:
     def __init__(self, analysis):
         self.analysis = analysis
@@ -40,7 +42,7 @@ class FMT:
             start = vals.find("flag")
             end = vals.find("}")
             flag = vals[start:end+1]
-            print(flag)
+            print(fire + " " + flag + " " + fire)
             return True
         else:
             return False
@@ -65,7 +67,7 @@ class FMT:
             elif self.analysis.has_binsh():
                 p.sendline(b"cat flag.txt")
                 p.recvuntil(b"flag")
-                print("flag" + p.recvline().decode('utf-8'))
+                print(fire + " flag" + p.recvline().decode('utf-8') + " " + fire)
 
     def find_write_prim_offset(self):
         offset = None
