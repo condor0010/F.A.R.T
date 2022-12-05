@@ -99,7 +99,22 @@ class ROP:
     def reg_pos(self, reg, gad):
         out = []
         gad = gad.split(' ')
-        registers = ['rax', 'rbx', 'rcx', 'rdx', 'rsi', 'rdi', 'rbp', 'rsp', 'r8', 'r9', 'r10', 'r11', 'r12', 'r13', 'r14', 'r15']
+        registers = ['rax',
+                     'rbx',
+                     'rcx',
+                     'rdx',
+                     'rsi',
+                     'rdi',
+                     'rbp',
+                     'rsp',
+                     'r8',
+                     'r9',
+                     'r10',
+                     'r11',
+                     'r12',
+                     'r13',
+                     'r14',
+                     'r15']
         for i in gad:
             if i.strip(';') in registers:
                 out.append(i.strip(';'))
@@ -141,10 +156,14 @@ class ROP:
         return self.fill_reg("rdi", int(self.analysis.get_win_arg(), 16))
     
     def get_primitives(self):
-        print("inside get prim")
         for i in self.gadgets:
-            if 'mov qword ptr [' in i:
-                print(i)
+            if 'qword ptr [' in i and 'mov' in i:
+                return i
+        return None
+    
+    def get_primitive_regs(self):
+        prim = self.get_primitives().split('mov qword ptr')
+        print(prim[1].split(';')[0].strip('[').split(','))
 
 class Get2overflow:
     def __init__(s, binary):
