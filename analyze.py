@@ -76,6 +76,9 @@ class Analyze:
     def has_nx(self):
         return 'true' in self.r2.cmd('iI~NX')
 
+    def has_putchar(self):
+        return 'sym.imp.putchar' in self.functions
+
     def win_has_args(self):
         if self.has_win():
             return "" != self.r2.cmd("pdf @ sym.win | grep cmp")
@@ -107,7 +110,12 @@ class Analyze:
     
     def get_win(self):
         return self.function_addrs['sym.win']
-    
+   
+    def get_win_arg(self):
+        tmp = self.r2.cmd('pdf @ sym.win | grep cmp | awk \'{print $NF}\'')
+        print(tmp)
+        return tmp
+
     def get_vuln(self):
         return self.function_addrs['sym.vuln']
 

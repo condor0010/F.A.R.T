@@ -5,6 +5,7 @@ from analyze import *
 import Fart_FMT
 import Fart_ROP
 import time
+import traceback
 
 logging.getLogger('pwnlib').setLevel(logging.WARNING)
 
@@ -58,6 +59,7 @@ def send(payload, p, analyze):
         print(fire + " flag" + p.recvuntil(b"}").decode("utf-8") + " " + fire)
 
 if __name__ == "__main__":
+   
     try:
         
         binary = args.BIN
@@ -73,4 +75,4 @@ if __name__ == "__main__":
         print("[-] Well this stinks! We've encountered an exception we don't know how to handle!")
         print("Exception Type: " + str(e.__class__.__name__))
         print("Exception Message: " + str(e))
-        print(e.__traceback__)
+        print(traceback.format_exc())
