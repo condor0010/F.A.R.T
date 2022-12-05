@@ -18,7 +18,7 @@ class ROP:
 
     def angrop_init(self):
         self.angr_proj = angr.Project(self.analysis.binary)
-        self.angr_rop  = angr_proj.analyses.ROP()
+        self.angr_rop  = self.angr_proj.analyses.ROP()
         self.angr_rop.find_gadgets()
 
     def angrop_set_regs(self, args):
