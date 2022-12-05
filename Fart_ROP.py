@@ -26,7 +26,7 @@ class ROP:
     def angrop_write_to_mem(self, addr, val):
         return self.angr_rop.write_to_mem(addr, val)
     def angrop_write_binsh_to_mem(self):
-        return angrop_write_to_mem(self.get_writeable_mem(), b"/bin/sh\0")
+        return self.angrop_write_to_mem(self.get_writeable_mem(), b"/bin/sh\0")
         
 
     def build_exploit(self):
