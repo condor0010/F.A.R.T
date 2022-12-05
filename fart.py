@@ -73,3 +73,4 @@ if __name__ == "__main__":
         print("[-] Well this stinks! We've encountered an exception we don't know how to handle!")
         print("Exception Type: " + str(e.__class__.__name__))
         print("Exception Message: " + str(e))
+        #print(e.__traceback__)
