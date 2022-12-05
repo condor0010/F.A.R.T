@@ -12,7 +12,7 @@ class ROP:
         self.e = ELF(self.filename)
         self.gadgets = []
         self.find_gadgets()
-
+        self.libc = "/opt/libc.so.6"
     
     def build_exploit(self):
         payload = None
@@ -173,6 +173,9 @@ class ROP:
         prim = self.get_primitives().split('mov qword ptr')
         print(prim[1].split(';')[0].strip('[').split(','))
 
+    def one_gadget(self):
+          return [int(i) for i in subprocess.check_output(['one_gadget', '--raw', self.libc]).decode().split(' ')]
+
 class Get2overflow:
     def __init__(s, binary):
         s.elf = context.binary =  ELF(binary)
@@ -212,3 +215,4 @@ class Get2overflow:
 
     def buf(s):
         return len(s.symbolic_padding)
+
