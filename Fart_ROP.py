@@ -19,7 +19,7 @@ class ROP:
 
     def write_binsh_to_mem(self):
         angr_proj = angr.Project(self.analysis.binary)
-        angr_rop  = self.angr_proj.analyses.ROP()
+        angr_rop  = angr_proj.analyses.ROP()
         angr_rop.find_gadgets_single_threaded() 
         #angr_rop.find_gadgets()
         self.analysis.hbsh = True
