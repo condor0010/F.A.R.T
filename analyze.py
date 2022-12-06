@@ -3,6 +3,7 @@ import json
 import r2pipe
 import logging
 from pwn import *
+from Print import *
 
 logging.getLogger('pwnlib').setLevel(logging.WARNING)
 logging.disable(logging.CRITICAL)
@@ -12,6 +13,7 @@ class Analyze:
         self.binary = binary
         self.bin_hash = bin_hash
         self.elf = ELF(binary)
+        self.bin_name = binary.split("/")[-1]
 
         # r2pipe setup
         self.r2 = r2pipe.open(self.binary, flags=['-2']) # open binary
@@ -53,7 +55,7 @@ class Analyze:
 
     def has_catflagtxt(self):
         for i in self.strings:
-            if "cat flag.txt" in i:
+            if "cat flag.txt" in i: 
                 return True
         return False
 

