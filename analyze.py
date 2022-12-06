@@ -124,9 +124,7 @@ class Analyze:
         return self.function_addrs['sym.win']
    
     def get_win_arg(self):
-        tmp = self.r2.cmd('pdf @ sym.win | grep cmp | awk \'{print $NF}\'')
-        print(tmp)
-        return tmp
+        return self.r2.cmd('pdf @ sym.win | grep cmp | awk \'{print $NF}\'')
 
     def get_vuln(self):
         return self.function_addrs['sym.vuln']
