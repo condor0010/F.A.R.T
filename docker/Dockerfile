@@ -9,6 +9,7 @@ ENV LANG en_US.UTF-8
 # apt-get installs
 RUN apt-get update -y -qq
 RUN apt-get install -y -qq \
+    systemd-coredump \
     g++ \
     gcc \
     gcc-multilib \
@@ -44,7 +45,9 @@ RUN python3 -m pip install --no-cache-dir \
     sudo \
     unicorn \
     z3-solver \
-    r2pipe
+    r2pipe \
+    tabulate
+
 
 # install angr after dependencies met
 RUN pip3 install angr angrop

