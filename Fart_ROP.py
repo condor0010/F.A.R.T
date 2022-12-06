@@ -282,10 +282,8 @@ class Get2overflow:
                         simgr.stashes["mem_corrupt"].append(path)
                     except ValueError:
                         print("[-] Failed to get offset!")
-                        sys.exit(-1)
                 else:
                     print("[-] Not satisfiable")
-                    sys.exit(-1)
                 simgr.stashes["unconstrained"].remove(path)
                 simgr.drop(stash="active")
 
