@@ -247,7 +247,6 @@ class Get2overflow:
         self.elf = context.binary =  ELF(binary)
         self.proj = angr.Project(binary)
         start_addr = self.elf.sym["main"]
-        # Maybe change to symbolic file stream
         buff_size = 1024
         self.symbolic_input = claripy.BVS("input", 8 * buff_size)
         self.symbolic_padding = None
