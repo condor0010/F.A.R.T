@@ -26,6 +26,12 @@ class Analyze:
         self.function_addrs = dict(zip(self.functions, [i['offset'] for i in self.afl if 'name' in i]))
         
     # has stuff
+    def has_leak_string(self):
+        for i in self.strings:
+            if "Leak" in i:
+                return True
+        return False
+
     def has_binsh(self):
         for i in self.strings:
             if "/bin/sh" in i:
@@ -128,11 +134,12 @@ class Analyze:
         return None
 
     def has_leak(self):
-        p = process(self.binary)
-        p.sendline(b"%1p")
-        try:
-            p.recvuntil(b"<<<")
-            return "0x" in p.recvline().decode("utf-8")
-        # TODO: Find the real exception and handle it
-        except EOFError as e:
-            return False
+        if not self.has_leak_string():
+            p = process(self.binary)
+            p.sendline(b"%1p")
+            try:
+                p.recvuntil(b"<<<")
+                return "0x" in p.recvline().decode("utf-8")
+            # TODO: Find the real exception and handle it
+            except EOFError as e:
+                return False

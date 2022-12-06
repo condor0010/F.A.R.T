@@ -19,8 +19,9 @@ MM88MMM ,adPPYYba, 8b,dPPYba, MM88MMM
   88    88,    ,88 88           88,    
   88    `"8bbdP"Y8 88           "Y888
   
-  Format And ROP Toolkit \U0001F4A8
+  Format And ROP Toolkit \U0001F4A8 
 '''
+
 
 fire = "\U0001F525"
 
@@ -68,7 +69,7 @@ if __name__ == "__main__":
             sys.exit(-1)
         
         print(banner)
-    
+
         analyze = Analyze(binary)
         exploit(analyze)
     except Exception as e:
