@@ -48,6 +48,7 @@ def exploit(analyize):
         try:
             send(rop.build_exploit(), p, analyze)
         except EOFError:
+            p = process(binary)
             send(rop.build_exploit(failed=True), p, analyze)
     else:
         fmt = Fart_FMT.FMT(analyze)
