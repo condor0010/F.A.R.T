@@ -4,6 +4,7 @@ import angrop
 import claripy
 import subprocess
 import os
+from Print import Print
 
 class ROP:
     def __init__(self, analysis):
@@ -19,6 +20,7 @@ class ROP:
         self.angr_rop  = self.angr_proj.analyses.ROP()
         #self.angr_rop.find_gadgets_single_threaded() 
         self.angr_rop.find_gadgets()
+        self.fart_print = Print()
 
     def write_binsh_to_mem(self):
         self.analysis.hbsh = True
@@ -57,7 +59,7 @@ class ROP:
         elif self.analysis.has_leak_string():
             payload = self.ret2one(failed)
         else:
-            fart_print.warning("Exploit not found!")
+            self.fart_print.warning("Exploit not found!")
         
         return payload
     
@@ -252,6 +254,7 @@ class ROP:
 
 class Get2overflow:
     def __init__(self, binary):
+        self.fart_print = Print()
         self.elf = context.binary =  ELF(binary)
         self.proj = angr.Project(binary)
         start_addr = self.elf.sym["main"]
@@ -280,9 +283,9 @@ class Get2overflow:
                         self.symbolic_padding = stack_smash[:index]
                         simgr.stashes["mem_corrupt"].append(path)
                     except ValueError:
-                        fart_print.error("Failed to get offset!")
+                        self.fart_print.error("Failed to get offset!")
                 else:
-                    fart_print.error("[-] Not satisfiable")
+                    self.fart_print.error("[-] Not satisfiable")
                 simgr.stashes["unconstrained"].remove(path)
                 simgr.drop(stash="active")
 

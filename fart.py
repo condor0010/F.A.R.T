@@ -97,9 +97,9 @@ if __name__ == "__main__":
             bins.append(bins_dir + "/" + binary)
     
         for binary in bins:
-            #proc = Process(target=__libc_fart_main, args=(binary,))
-            #proc.start()
-            __libc_fart_main(binary, debug)
+            proc = Process(target=__libc_fart_main, args=(binary,debug))
+            proc.start()
+            #__libc_fart_main(binary, debug)
     else:
         binary = args.BIN
-        __libc_fart_main(binary)
+        __libc_fart_main(binary, debug)
