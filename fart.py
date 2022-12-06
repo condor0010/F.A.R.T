@@ -122,7 +122,7 @@ if __name__ == "__main__":
         if len(processes) == 0:
             break
     
-   
+    os.system('touch flags.pot')   
     with open("flags.pot", "r") as fd:
         flags = fd.read().split("\n")[:-1]
         table = []
