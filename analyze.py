@@ -15,17 +15,18 @@ class Analyze:
         # r2pipe setup
         self.r2 = r2pipe.open(self.binary, flags=['-2']) # open binary
         self.r2.cmd('e scr.color=1')
-        self.r2.cmd('aaa') # anilize binary
+        self.r2.cmd('aaa') # analyze binary
         self.izz = json.loads(self.r2.cmd('izj')) # returns json relating to strings
         self.afl = json.loads(self.r2.cmd('aflj')) # returns json relating to functions
         
         # see what is in the binary
         self.strings = [i['string'] for i in self.izz if 'string' in i] # returns list of strings
         self.functions = [i['name'] for i in self.afl if 'name' in i] # returns list of functions
+        
         # get addrs of what is in the binary
         self.string_addrs = dict(zip(self.strings, [i['vaddr'] for i in self.izz if 'string' in i]))
         self.function_addrs = dict(zip(self.functions, [i['offset'] for i in self.afl if 'name' in i]))
-        # weird shit
+        
         self.hbsh = False
         
     # has stuff
