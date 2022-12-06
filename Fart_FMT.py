@@ -6,11 +6,11 @@ logging.getLogger('pwnlib').setLevel(logging.WARNING)
 fire = "\U0001F525"
 
 class FMT:
-    def __init__(self, analysis):
+    def __init__(self, analysis, v_lvl):
         self.analysis = analysis
         self.filename = analysis.binary
         self.e = ELF(self.filename)
-        self.fart_print = Print()
+        self.fart_print = Print(v_lvl)
     
     def build_exploit(self):
         payload = None

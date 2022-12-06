@@ -7,25 +7,25 @@ class Print:
       "endc": "\033[0m"
     }
 
-    def __init__(self,v_level, quiet=False):
+    def __init__(self, v_level, quiet=False):
         self.quiet = quiet
         self.v_level = v_level
   
   # green [+]
     def success(self, text):
-        if not self.quiet and self.v_level <= 4:
+        if not self.quiet and self.v_level >= 1:
             print(self.colors["green"] + f'[+] {text}' + self.colors["endc"])
   # blue [*]
     def info(self, text):
-        if not self.quiet and self.v_level <= 3:
+        if not self.quiet and self.v_level >= 2:
             print(self.colors["blue"] + f'[*] {text}' + self.colors["endc"])
   # yellow [!]
     def warning(self, text):
-        if not self.quiet and self.v_level <= 2:
+        if not self.quiet and self.v_level >= 3:
             print(self.colors["yellow"] + f'[!] {text}' + self.colors["endc"])
   # red [-]
     def error(self, text):
-        if not self.quiet and self.v_level <= 1:
+        if not self.quiet and self.v_level >= 4:
             print(self.colors["red"] + f'[-] {text}' + self.colors["endc"])
 
     def green(self, text):
