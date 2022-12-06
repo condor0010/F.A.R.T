@@ -8,8 +8,9 @@ import time
 import traceback
 from multiprocessing import Process
 import os
-from progress.bar import Bar
+import progressbar
 from tabulate import tabulate
+import sys
 from Print import Print
 
 logging.getLogger('pwnlib').setLevel(logging.WARNING)
@@ -108,22 +109,27 @@ if __name__ == "__main__":
         binary = args.BIN
         __libc_fart_main(binary, debug)
 
-    bar = Bar("Processing", max=len(processes))
+    #widgets = ["Exploiting", progressbar.AnimatedMarker()]
+    bar = progressbar.ProgressBar(max_value=len(bins), fd=sys.stdout)
+    
+    num = 0
     while True:
         for proc in processes:
             if not proc.is_alive():
                 processes.remove(proc)
-                bar.next()
+                num += 1
+                bar.update(num)
         if len(processes) == 0:
             break
-    bar.finish()
+    
    
     with open("flags.pot", "r") as fd:
-        flags = fd.read().split("\n")
+        flags = fd.read().split("\n")[:-1]
         table = []
         for flag in flags:
             table.append(flag.split(": "))
     
+    print("")
     print("")
     print(tabulate(table, headers=["Binary", "Flag"], showindex="always"))
     os.remove("flags.pot")
