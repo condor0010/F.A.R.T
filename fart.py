@@ -45,7 +45,10 @@ def exploit(analyize):
     
     if not analyze.has_leak():
         rop = Fart_ROP.ROP(analyze)
-        send(rop.build_exploit(), p, analyze)
+        try:
+            send(rop.build_exploit(), p, analyze)
+        except EOFError:
+            send(rop.build_exploit(failed=True), p, analyze)
     else:
         fmt = Fart_FMT.FMT(analyze)
         send(fmt.build_exploit(), p, analyze)
