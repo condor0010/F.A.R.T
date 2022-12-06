@@ -8,8 +8,9 @@ logging.getLogger('pwnlib').setLevel(logging.WARNING)
 logging.disable(logging.CRITICAL)
 
 class Analyze:
-    def __init__(self, binary):
+    def __init__(self, binary, bin_hash):
         self.binary = binary
+        self.bin_hash = bin_hash
         self.elf = ELF(binary)
 
         # r2pipe setup

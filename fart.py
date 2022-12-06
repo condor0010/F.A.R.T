@@ -13,6 +13,7 @@ from tabulate import tabulate
 import sys
 from Print import Print
 import argparse
+import hashlib
 
 logging.getLogger('pwnlib').setLevel(logging.WARNING)
 
@@ -72,12 +73,13 @@ def send(payload, p, analyze):
             p.sendline(b"cat flag.txt")
         p.recvuntil(b"flag{")
         char = "{"
-        fart_print.flag(f"{analyze.binary}: flag{char}{p.recvuntil(b'}').decode('utf-8')}")
+        flag = f"flag{char}{p.recvuntil(b'}').decode('utf-8')}"
+        fart_print.flag(f"{analyze.bin_hash},{analyze.binary},{flag}")
 
-def __libc_fart_main(binary, v_lvl):
+def __libc_fart_main(binary, v_lvl, bin_hash):
     global analyze
     try:
-        analyze = Analyze(binary)
+        analyze = Analyze(binary, bin_hash)
         exploit(analyze, v_lvl)
     except Exception as e:
         fart_print.warning("Well this stinks! We've encountered an exception we don't know how to handle!")
@@ -96,8 +98,17 @@ def get_opts():
     
     return pargs
 
-def check_pot_file():
-    pass
+def check_pot_file(data, binary, bin_hash):
+    for line in data:
+        (h, b, f) = line.split(",")
+        if binary in b and bin_hash in h:
+            fart_print.info("This binary has already been solved!")
+            return True
+    return False
+    
+
+def generate_md5sum(binary):
+    return hashlib.md5(open(binary, "rb").read()).hexdigest()
 
 if __name__ == "__main__":
     opts = get_opts()
@@ -107,12 +118,11 @@ if __name__ == "__main__":
         opts.verbosity = 0
 
     
+    fart_print = Print(v_level=v_lvl)
+    
     if opts.directory:
-
-        fart_print = Print(v_level=0)
         bins_dir = opts.directory
     else:
-        fart_print = Print(v_level=v_lvl)
         bins_dir = args.DIR
     
     bins = []
@@ -120,23 +130,39 @@ if __name__ == "__main__":
  
     fart_print.green(banner)
     
+    try:
+        pot_fd = open(".flags.pot", "r")
+    except FileNotFoundError:
+        os.system("touch .flags.pot") 
+        pot_fd = open(".flags.pot", "r")
+
+    pot_data = pot_fd.read().split("\n")[:-1]
+    pot_fd.close()
+
     if bins_dir:
         # Disable printing when running multiprocessed
         for binary in os.listdir(bins_dir):    
             bins.append(bins_dir + "/" + binary)
     
         for binary in bins:
-            proc = Process(target=__libc_fart_main, args=(binary,0))
+            bin_hash = generate_md5sum(binary)
+            if not check_pot_file(pot_data, binary, bin_hash):
+                proc = Process(target=__libc_fart_main, args=(binary,0,bin_hash))
             
-            proc.start()
-            processes.append(proc)
+                proc.start()
+                processes.append(proc)
     else:
         if opts.binary:
             binary = opts.binary
         else:
             binary = args.BIN
-        __libc_fart_main(binary, v_lvl)
 
+        bin_hash = generate_md5sum(binary)
+        if not check_pot_file(pot_fd, binary, bin_hash):
+            __libc_fart_main(binary, v_lvl, bin_hash)
+    
+    # Quiet for the progress bar
+    fart_print.v_level = 0
     bar = progressbar.ProgressBar(max_value=len(bins), fd=sys.stdout)
     
     num = 0
@@ -149,15 +175,15 @@ if __name__ == "__main__":
         if len(processes) == 0:
             break
     
-    with open("flags.pot", "r") as fd:
+    with open(".flags.pot", "r") as fd:
         flags = fd.read().split("\n")[:-1]
         table = []
         for flag in flags:
-            table.append(flag.split(": "))
+            table.append(flag.split(","))
     
     print("")
     print("")
-    print(tabulate(table, headers=["Binary", "Flag"], showindex="always"))
+    print(tabulate(table, headers=["MD5", "Binary", "Flag"], showindex="always"))
     
     fart_print.v_level = 4
     if bins:

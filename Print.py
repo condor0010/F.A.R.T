@@ -33,6 +33,6 @@ class Print:
             print(self.colors["green"] + f"{text}" + self.colors["endc"])
 
     def flag(self, text):
-        with open("flags.pot", "a") as fd:
+        with open(".flags.pot", "a") as fd:
             fd.write(f"{text}\n")
 
