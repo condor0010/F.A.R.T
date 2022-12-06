@@ -17,7 +17,8 @@ class ROP:
         # angrop stuff
         self.angr_proj = angr.Project(self.analysis.binary)
         self.angr_rop  = self.angr_proj.analyses.ROP()
-        self.angr_rop.find_gadgets_single_threaded()
+        #self.angr_rop.find_gadgets_single_threaded() 
+        self.angr_rop.find_gadgets()
 
     def write_binsh_to_mem(self):
         self.analysis.hbsh = True
@@ -56,7 +57,7 @@ class ROP:
         elif self.analysis.has_leak_string():
             payload = self.ret2one(failed)
         else:
-            print("[!] Exploit not found!")
+            fart_print.warning("Exploit not found!")
         
         return payload
     
@@ -128,7 +129,8 @@ class ROP:
         p = process(self.filename)
         p.recvuntil(b": ")
         leak = p.recvline().decode('utf-8').strip()
-        
+        p.close()
+
         return payload
 
     def generic_first_arg(self):
@@ -143,9 +145,6 @@ class ROP:
             payload += self.fill_reg("rdi", self.get_writeable_mem())
         
         return payload
-
-    def supporting_functions_here(self): # ---------------------------------------------
-        print("example support function")
 
     def find_gadgets(self):
         cmd = "ropper --nocolor -f " + self.filename + " 2>/dev/null | grep 0x"
@@ -281,9 +280,9 @@ class Get2overflow:
                         self.symbolic_padding = stack_smash[:index]
                         simgr.stashes["mem_corrupt"].append(path)
                     except ValueError:
-                        print("[-] Failed to get offset!")
+                        fart_print.error("Failed to get offset!")
                 else:
-                    print("[-] Not satisfiable")
+                    fart_print.error("[-] Not satisfiable")
                 simgr.stashes["unconstrained"].remove(path)
                 simgr.drop(stash="active")
 

