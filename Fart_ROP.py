@@ -120,7 +120,7 @@ class ROP:
         if failed:
             payload += self.realign()
         payload += p64(self.e.sym['system'])
-        print(len(payload))
+        
         return payload
 
     def ret2one(self, failed):
