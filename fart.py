@@ -51,11 +51,13 @@ def exploit(analyize, v_lvl):
     p = start(binary)
     payload = None
     
+    fart_print.info("Determining vulnerability type")
     if not analyze.has_leak():
         rop = Fart_ROP.ROP(analyze, v_lvl)
         try:
             send(rop.build_exploit(), p, analyze)
         except EOFError:
+            fart_print.warning("Possible alignment issue! Realigning and trying again")
             p2 = process(binary)
             send(rop.build_exploit(failed=True), p, analyze)
             p2.close()
@@ -74,11 +76,12 @@ def send(payload, p, analyze):
         p.recvuntil(b"flag{")
         char = "{"
         flag = f"flag{char}{p.recvuntil(b'}').decode('utf-8')}"
-        fart_print.flag(f"{analyze.bin_hash},{analyze.binary},{flag}")
+        fart_print.flag(f"{analyze.bin_hash},{analyze.bin_name},{flag}")
 
 def __libc_fart_main(binary, v_lvl, bin_hash):
     global analyze
     try:
+        fart_print.info("Finding interesting strings and symbols")
         analyze = Analyze(binary, bin_hash)
         exploit(analyze, v_lvl)
     except Exception as e:
@@ -99,15 +102,18 @@ def get_opts():
     return pargs
 
 def check_pot_file(data, binary, bin_hash):
+    bin_name = binary.split("/")[-1]
     for line in data:
         (h, b, f) = line.split(",")
-        if binary in b and bin_hash in h:
+        if bin_name in b and bin_hash in h:
             fart_print.info("This binary has already been solved!")
             return True
     return False
     
 
 def generate_md5sum(binary):
+    bin_name = binary.split("/")[-1]
+    fart_print.info(f"Calculating MD5 sum of {bin_name}")
     return hashlib.md5(open(binary, "rb").read()).hexdigest()
 
 if __name__ == "__main__":
@@ -117,13 +123,12 @@ if __name__ == "__main__":
     if not v_lvl:
         opts.verbosity = 0
 
-    
-    fart_print = Print(v_level=v_lvl)
-    
+    bins_dir = None     
     if opts.directory:
         bins_dir = opts.directory
+        fart_print = Print(v_level=0)
     else:
-        bins_dir = args.DIR
+        fart_print = Print(v_level=v_lvl)
     
     bins = []
     processes = []
@@ -133,9 +138,11 @@ if __name__ == "__main__":
     try:
         pot_fd = open(".flags.pot", "r")
     except FileNotFoundError:
+        fart_print.warning("No flag pot file found! Generating one now.")
         os.system("touch .flags.pot") 
         pot_fd = open(".flags.pot", "r")
 
+    fart_print.info("Retrieving previously solved binaries")
     pot_data = pot_fd.read().split("\n")[:-1]
     pot_fd.close()
 
@@ -146,6 +153,7 @@ if __name__ == "__main__":
     
         for binary in bins:
             bin_hash = generate_md5sum(binary)
+
             if not check_pot_file(pot_data, binary, bin_hash):
                 proc = Process(target=__libc_fart_main, args=(binary,0,bin_hash))
             
@@ -158,7 +166,7 @@ if __name__ == "__main__":
             binary = args.BIN
 
         bin_hash = generate_md5sum(binary)
-        if not check_pot_file(pot_fd, binary, bin_hash):
+        if not check_pot_file(pot_data, binary, bin_hash):
             __libc_fart_main(binary, v_lvl, bin_hash)
     
     # Quiet for the progress bar
