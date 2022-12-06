@@ -13,7 +13,8 @@ class Analyze:
         self.elf = ELF(binary)
 
         # r2pipe setup
-        self.r2 = r2pipe.open(self.binary) # open binary
+        self.r2 = r2pipe.open(self.binary, flags=['-2']) # open binary
+        self.r2.cmd('e scr.color=1')
         self.r2.cmd('aaa') # anilize binary
         self.izz = json.loads(self.r2.cmd('izj')) # returns json relating to strings
         self.afl = json.loads(self.r2.cmd('aflj')) # returns json relating to functions
