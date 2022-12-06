@@ -18,8 +18,8 @@ class ROP:
         # angrop stuff
         self.angr_proj = angr.Project(self.analysis.binary)
         self.angr_rop  = self.angr_proj.analyses.ROP()
-        #self.angr_rop.find_gadgets_single_threaded() 
-        self.angr_rop.find_gadgets()
+        self.angr_rop.find_gadgets_single_threaded() 
+        #self.angr_rop.find_gadgets()
         self.fart_print = Print()
 
     def write_binsh_to_mem(self):
