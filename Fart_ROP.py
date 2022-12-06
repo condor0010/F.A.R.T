@@ -37,7 +37,14 @@ class ROP:
         payload = None
         if self.analysis.has_win():
             if self.analysis.win_has_args():
-                payload = self.ret2win_with_args(failed)
+                if self.analysis.has_execve():
+                    payload = self.ret2execve(failed)
+                elif self.analysis.has_syscall():
+                    payload = self.ret2syscall(failed)
+                elif self.analysis.has_system():
+                    payload = self.ret2system()
+                else:
+                    payload = self.ret2win_with_args(failed)
             else:
                 payload = self.ret2win(failed)
         elif self.analysis.has_execve():
@@ -50,7 +57,7 @@ class ROP:
             payload = self.ret2one(failed)
         else:
             print("[!] Exploit not found!")
-        #print(len(self.ropwrite()))
+        
         return payload
     
     def set_offset(self):
