@@ -46,7 +46,7 @@ class FMT:
             end = vals.find("}")
             flag = vals[start:end+1]
             flag_stripped = flag.strip("\n")
-            self.fart_print.success(f"{self.filename}: {flag_stripped}")
+            self.fart_print.flag(f"{self.filename}: {flag_stripped}")
             return True
         else:
             return False
@@ -109,11 +109,11 @@ class FMT:
             p.recvline()
 
             flag = p.recvline().decode('utf-8').strip('\n')
-            self.fart_print.success(f"{self.filename}: flag{flag}")
+            self.fart_print.flag(f"{self.filename}: {flag}")
         elif self.analysis.has_binsh():
             p.sendline(b"cat flag.txt")
             p.recvuntil(b"flag")
             flag = p.recvline().decode('utf-8').strip('\n')
-            self.fart_print.success(f"{self.filename}: flag{flag}")
+            self.fart_print.flag(f"{self.filename}: flag{flag}")
 
         p.close()

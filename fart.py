@@ -8,6 +8,8 @@ import time
 import traceback
 from multiprocessing import Process
 import os
+from progress.bar import Bar
+from tabulate import tabulate
 from Print import Print
 
 logging.getLogger('pwnlib').setLevel(logging.WARNING)
@@ -70,7 +72,7 @@ def send(payload, p, analyze):
             sleep(0.1)
             p.sendline(b"cat flag.txt")
         p.recvuntil(b"flag")
-        fart_print.success(f"{analyze.binary}: fart{p.recvuntil(b'}').decode('utf-8')}")
+        fart_print.flag(f"{analyze.binary}: flag{p.recvuntil(b'}').decode('utf-8')}")
 
 def __libc_fart_main(binary, debug):
     global analyze
@@ -78,8 +80,8 @@ def __libc_fart_main(binary, debug):
         analyze = Analyze(binary)
         exploit(analyze)
     except Exception as e:
-        fart_print.warning("Well this stinks! We've encountered an exception we don't know how to handle!")
         if debug:
+            fart_print.warning("Well this stinks! We've encountered an exception we don't know how to handle!")
             fart_print.error("Exception Type: " + str(e.__class__.__name__))
             fart_print.error("Exception Message: " + str(e))
             fart_print.error(traceback.format_exc())
@@ -91,7 +93,8 @@ if __name__ == "__main__":
     
     bins_dir = args.DIR
     bins = []
-    
+    processes = []
+
     if bins_dir:
         for binary in os.listdir(bins_dir):    
             bins.append(bins_dir + "/" + binary)
@@ -99,7 +102,30 @@ if __name__ == "__main__":
         for binary in bins:
             proc = Process(target=__libc_fart_main, args=(binary,debug))
             proc.start()
+            processes.append(proc)
             #__libc_fart_main(binary, debug)
     else:
         binary = args.BIN
         __libc_fart_main(binary, debug)
+
+    bar = Bar("Processing", max=len(processes))
+    while True:
+        for proc in processes:
+            if not proc.is_alive():
+                processes.remove(proc)
+                bar.next()
+        if len(processes) == 0:
+            break
+    bar.finish()
+   
+    with open("flags.pot", "r") as fd:
+        flags = fd.read().split("\n")
+        table = []
+        for flag in flags:
+            table.append(flag.split(": "))
+    
+    print("")
+    print(tabulate(table, headers=["Binary", "Flag"], showindex="always"))
+    os.remove("flags.pot")
+
+    fart_print.info(f"Flags recovered: {len(flags)}/{len(bins)}")

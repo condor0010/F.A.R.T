@@ -15,7 +15,7 @@ class ROP:
         self.gadgets = []
         self.find_gadgets()
         self.libc = "/opt/libc.so.6"
-        self.fart_print = Print()
+        self.fart_print = Print(quiet=True)
 
     def write_binsh_to_mem(self):
         angr_proj = angr.Project(self.analysis.binary)
@@ -243,7 +243,7 @@ class ROP:
 
 class Get2overflow:
     def __init__(self, binary):
-        self.fart_print = Print()
+        self.fart_print = Print(quiet=True)
         self.elf = context.binary =  ELF(binary)
         self.proj = angr.Project(binary)
         start_addr = self.elf.sym["main"]
@@ -274,7 +274,7 @@ class Get2overflow:
                     except ValueError:
                         self.fart_print.error("Failed to get offset!")
                 else:
-                    self.fart_print.error("[-] Not satisfiable")
+                    self.fart_print.error("Not satisfiable")
                 simgr.stashes["unconstrained"].remove(path)
                 simgr.drop(stash="active")
 
