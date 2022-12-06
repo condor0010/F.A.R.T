@@ -12,6 +12,7 @@ import progressbar
 from tabulate import tabulate
 import sys
 from Print import Print
+import argparse
 
 logging.getLogger('pwnlib').setLevel(logging.WARNING)
 
@@ -37,8 +38,6 @@ continue
 '''
 context.terminal = ["tmux", "splitw", "-h"]
 
-fart_print = Print()
-
 def start(binary):
     e = context.binary = ELF(binary)
     if args.GDB:
@@ -46,13 +45,13 @@ def start(binary):
     else:
         return process(e.path)
 
-def exploit(analyize):
+def exploit(analyize, v_lvl):
     binary = analyze.binary
     p = start(binary)
     payload = None
     
     if not analyze.has_leak():
-        rop = Fart_ROP.ROP(analyze)
+        rop = Fart_ROP.ROP(analyze, v_lvl)
         try:
             send(rop.build_exploit(), p, analyze)
         except EOFError:
@@ -60,7 +59,7 @@ def exploit(analyize):
             send(rop.build_exploit(failed=True), p, analyze)
             p2.close()
     else:
-        fmt = Fart_FMT.FMT(analyze)
+        fmt = Fart_FMT.FMT(analyze, v_lvl)
         send(fmt.build_exploit(), p, analyze)
 
     p.close()
@@ -75,41 +74,66 @@ def send(payload, p, analyze):
         p.recvuntil(b"flag")
         fart_print.flag(f"{analyze.binary}: flag{p.recvuntil(b'}').decode('utf-8')}")
 
-def __libc_fart_main(binary, debug):
+def __libc_fart_main(binary, v_lvl):
     global analyze
     try: 
         analyze = Analyze(binary)
-        exploit(analyze)
+        exploit(analyze, v_lvl)
     except Exception as e:
-        if debug:
-            fart_print.warning("Well this stinks! We've encountered an exception we don't know how to handle!")
-            fart_print.error("Exception Type: " + str(e.__class__.__name__))
-            fart_print.error("Exception Message: " + str(e))
-            fart_print.error(traceback.format_exc())
+        fart_print.warning("Well this stinks! We've encountered an exception we don't know how to handle!")
+        fart_print.error("Exception Type: " + str(e.__class__.__name__))
+        fart_print.error("Exception Message: " + str(e))
+        fart_print.error(traceback.format_exc())
+
+def get_opts():
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-b", "--binary", type=str, help="Exploit a single binary")
+    parser.add_argument("-d", "--directory", type=str, help="Exploit all binaries in a directory")
+    parser.add_argument("-v", "--verbosity", type=int, help="Set the print verbosity level (0-4)")
+
+    pargs = parser.parse_args()
+    
+    return pargs
 
 if __name__ == "__main__":
-    fart_print.green(banner)
+    opts = get_opts()
+     
+    v_lvl = opts.verbosity
+    if not v_lvl:
+        opts.verbosity = 0
+    fart_print = Print(v_lvl)
     
-    debug = args.DBG
     
-    bins_dir = args.DIR
+    if opts.directory:
+        bins_dir = opts.directory
+    else:
+        bins_dir = args.DIR
+    
     bins = []
     processes = []
-
+ 
+    fart_print.green(banner)
+    
     if bins_dir:
+        # Quiet print on processes
+        v_lvl = 0
+
         for binary in os.listdir(bins_dir):    
             bins.append(bins_dir + "/" + binary)
     
         for binary in bins:
-            proc = Process(target=__libc_fart_main, args=(binary,debug))
+            proc = Process(target=__libc_fart_main, args=(binary,v_lvl))
+            
             proc.start()
             processes.append(proc)
-            #__libc_fart_main(binary, debug)
     else:
-        binary = args.BIN
-        __libc_fart_main(binary, debug)
+        if opts.binary:
+            binary = opts.binary
+        else:
+            binary = args.BIN
+        __libc_fart_main(binary, v_lvl)
 
-    #widgets = ["Exploiting", progressbar.AnimatedMarker()]
     bar = progressbar.ProgressBar(max_value=len(bins), fd=sys.stdout)
     
     num = 0
@@ -122,7 +146,6 @@ if __name__ == "__main__":
         if len(processes) == 0:
             break
     
-   
     with open("flags.pot", "r") as fd:
         flags = fd.read().split("\n")[:-1]
         table = []
@@ -133,5 +156,8 @@ if __name__ == "__main__":
     print("")
     print(tabulate(table, headers=["Binary", "Flag"], showindex="always"))
     os.remove("flags.pot")
-
-    fart_print.info(f"Flags recovered: {len(flags)}/{len(bins)}")
+    
+    if bins:
+        fart_print.info(f"Flags recovered: {len(flags)}/{len(bins)}")
+    else:
+        fart_print.info(f"Flags recovered: {len(flags)}/1")
