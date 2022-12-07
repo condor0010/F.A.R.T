@@ -3,15 +3,10 @@ import json
 import r2pipe
 import logging
 from pwn import *
-from Print import *
-
-logging.getLogger('pwnlib').setLevel(logging.WARNING)
-logging.disable(logging.CRITICAL)
 
 class Analyze:
-    def __init__(self, binary, bin_hash):
+    def __init__(self, binary):
         self.binary = binary
-        self.bin_hash = bin_hash
         self.elf  = ELF(binary)
         self.libc = ELF('/opt/libc.so.6')
         self.bin_name = binary.split("/")[-1]

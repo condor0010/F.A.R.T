@@ -1,12 +1,9 @@
 from pwn import *
-from Print import Print
-
-logging.getLogger('pwnlib').setLevel(logging.WARNING)
 
 fire = "\U0001F525"
 
 class FMT:
-    def __init__(self, analysis, v_lvl):
+    def __init__(self, analysis):
         self.analysis = analysis
         self.filename = analysis.binary
         self.e = ELF(self.filename)
