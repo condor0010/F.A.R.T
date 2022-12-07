@@ -71,6 +71,7 @@ class ROP:
             os.remove(core.file.name)
             offset = cyclic_find(core.read(core.rsp, 8), n=8)
             return b'A'*offset
+        # TODO: catch all exceptions and run symbolic analysis as a last ditch effort
         except PwnlibException as e:
             print(e)
             self.fart_print.warning("Dynamic overflow failed! Attempting symbolic analysis")
