@@ -281,7 +281,7 @@ class Get2overflow:
     def __init__(self, binary, v_lvl):
         self.fart_print = Print(v_lvl)
         self.elf = context.binary =  ELF(binary)
-        self.proj = angr.Project(binary)
+        self.proj = angr.Project(binary, auto_load_libs=False)
         start_addr = self.elf.sym["main"]
         buff_size = 1024
         self.symbolic_input = claripy.BVS("input", 8 * buff_size)
