@@ -47,12 +47,12 @@ def start(binary):
     else:
         return process(e.path)
 
-def calculating_flatulence():
-    prn = random.randint(0,9)
-    if prn >= 7:
-        with open(".gas", "r") as fd:
-            lines = fd.read().split("\n")[:-1]
-            fart_print.info(lines[random.randint(0,len(lines))])
+#def calculating_flatulence():
+#    prn = random.randint(0,9)
+#    if prn >= 7:
+#        with open(".gas", "r") as fd:
+#            lines = fd.read().split("\n")[:-1]
+#            fart_print.info(lines[random.randint(0,len(lines))])
 
 
 def exploit(analyize, v_lvl):
@@ -78,7 +78,7 @@ def exploit(analyize, v_lvl):
     p.close()
 
 def send(payload, p, analyze):
-    calculating_flatulence()
+    #calculating_flatulence()
     if payload:
         p.sendline(payload)
         if analyze.has_binsh():
