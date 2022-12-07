@@ -147,6 +147,13 @@ class Analyze:
 
     def get_base(self, leak):
         return leak - self.get_libc_puts()
+    
+    def libc_printf(self):
+        return '' != self.r2.cmd('pdf @ sym.vuln~reloc.printf')
+    def libc_puts(self):
+        return '' != self.r2.cmd('pdf @ sym.vuln~reloc.puts')
+
+
 
 
     def has_leak(self):
