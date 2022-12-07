@@ -14,6 +14,7 @@ import sys
 from Print import Print
 import argparse
 import hashlib
+import random
 
 logging.getLogger('pwnlib').setLevel(logging.WARNING)
 
@@ -46,6 +47,14 @@ def start(binary):
     else:
         return process(e.path)
 
+def calculating_flatulence():
+    prn = random.randint(0,9)
+    if prn >= 7:
+        with open(".gas", "r") as fd:
+            lines = fd.read().split("\n")[:-1]
+            fart_print.info(lines[random.randint(0,len(lines))])
+
+
 def exploit(analyize, v_lvl):
     binary = analyze.binary
     p = start(binary)
@@ -69,6 +78,7 @@ def exploit(analyize, v_lvl):
     p.close()
 
 def send(payload, p, analyze):
+    calculating_flatulence()
     if payload:
         p.sendline(payload)
         if analyze.has_binsh():
@@ -122,7 +132,7 @@ if __name__ == "__main__":
      
     v_lvl = opts.verbosity
     if not v_lvl:
-        v_lvl = 0
+        v_lvl = 4
 
     bins_dir = None     
     if opts.directory:
