@@ -16,8 +16,6 @@ import argparse
 import hashlib
 import random
 
-logging.getLogger('pwnlib').setLevel(logging.WARNING)
-
 banner = '''
    ad88                                
   d8"                           ,d     
