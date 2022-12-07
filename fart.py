@@ -121,7 +121,7 @@ if __name__ == "__main__":
      
     v_lvl = opts.verbosity
     if not v_lvl:
-        opts.verbosity = 0
+        v_lvl = 0
 
     bins_dir = None     
     if opts.directory:

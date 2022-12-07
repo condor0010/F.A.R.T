@@ -80,8 +80,9 @@ class Analyze:
     
     def has_execve(self):
         return 'sym.imp.execve' in self.functions
-    
-    # TODO: Fix, because function called gadgets may not exist
+   
+    # DEPRICATED! Use has_leak to determine if the input is vulnerable
+    # to format string bugs. If not, then it should be vulnerable to BOF
     def has_rop(self):
         return any((match := re.compile(r'gadget*').match(i)) for i in self.functions)
 
@@ -147,6 +148,5 @@ class Analyze:
             try:
                 p.recvuntil(b"<<<")
                 return "0x" in p.recvline().decode("utf-8")
-            # TODO: Find the real exception and handle it
             except EOFError as e:
                 return False
