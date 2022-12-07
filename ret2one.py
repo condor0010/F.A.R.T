@@ -16,4 +16,5 @@ base = f_anal.get_base(int("0x"+io.recvuntil(b'>>>').decode('utf-8').split('0x')
 print(buff)
 print(hex(base))
 print(f_rop.one_gadget())
-print(f_anal.libc_puts())
+
+print(f_anal.geniric_thingy())

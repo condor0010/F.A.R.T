@@ -152,8 +152,10 @@ class Analyze:
         return '' != self.r2.cmd('pdf @ sym.vuln~reloc.printf')
     def libc_puts(self):
         return '' != self.r2.cmd('pdf @ sym.vuln~reloc.puts')
-    def geniric_thingy(self, libc_stuff):
-        return '' != self.r2.cmd('pdf @ sym.vuln~reloc.'+libc_stuff)
+
+    #TODO make less shitty, potential edge casess
+    def geniric_thingy(self):
+        return self.r2.cmd('pdf @ sym.vuln~reloc. | awk -F \'reloc\' \'{print $NF}\' | awk \'{print $1}\'').strip('.')[:-2]
 
 
 
