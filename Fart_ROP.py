@@ -211,7 +211,8 @@ class ROP:
             if i.strip(';') in registers:
                 out.append(i.strip(';'))
         return out.index(reg)
-    
+
+    #TODO can clobber pops, if 2 required pops are in one gadget and only one gadget
     def pop_reg(self, reg):
         for i in self.get_pops():
             if ': pop ' + reg + "; ret;" in i:
