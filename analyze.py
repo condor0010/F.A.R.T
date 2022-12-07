@@ -11,8 +11,10 @@ logging.disable(logging.CRITICAL)
 class Analyze:
     def __init__(self, binary, bin_hash):
         self.binary = binary
+        self.libc   = '/opt/libc.so.6'
         self.bin_hash = bin_hash
-        self.elf = ELF(binary)
+        self.elf  = ELF(binary)
+        self.libc = ELF(libc)
         self.bin_name = binary.split("/")[-1]
 
         # r2pipe setup
@@ -140,6 +142,13 @@ class Analyze:
         if self.has_win():
             return int(self.r2.cmd("pdf @ sym.vuln | grep cmp | awk \'{print $NF}\'"))
         return None
+
+    def get_libc_puts(self):
+        return self.libc.sym['puts']
+
+    def get_base(self, leak):
+        return leak - self.get_libc_puts()
+
 
     def has_leak(self):
         if not self.has_leak_string():
