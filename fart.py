@@ -58,6 +58,7 @@ def exploit(analyize, v_lvl):
             send(rop.build_exploit(), p, analyze)
         except EOFError:
             fart_print.warning("Possible alignment issue! Realigning and trying again")
+            analyze.hbsh = False
             p2 = process(binary)
             send(rop.build_exploit(failed=True), p, analyze)
             p2.close()
@@ -147,7 +148,6 @@ if __name__ == "__main__":
     pot_fd.close()
 
     if bins_dir:
-        # Disable printing when running multiprocessed
         for binary in os.listdir(bins_dir):    
             bins.append(bins_dir + "/" + binary)
     
@@ -189,6 +189,7 @@ if __name__ == "__main__":
         for flag in flags:
             table.append(flag.split(","))
     
+    # TODO: Make it to where if the current binary does not get the flag, it doesn't print the table if its a one off run
     print("")
     print("")
     print(tabulate(table, headers=["MD5", "Binary", "Flag"], showindex="always"))
