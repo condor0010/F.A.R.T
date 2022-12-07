@@ -11,10 +11,9 @@ logging.disable(logging.CRITICAL)
 class Analyze:
     def __init__(self, binary, bin_hash):
         self.binary = binary
-        self.libc   = '/opt/libc.so.6'
         self.bin_hash = bin_hash
         self.elf  = ELF(binary)
-        self.libc = ELF(libc)
+        self.libc = ELF('/opt/libc.so.6')
         self.bin_name = binary.split("/")[-1]
 
         # r2pipe setup
