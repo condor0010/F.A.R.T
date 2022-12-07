@@ -5,9 +5,6 @@ import logging
 from pwn import *
 from Print import *
 
-logging.getLogger('pwnlib').setLevel(logging.WARNING)
-logging.disable(logging.CRITICAL)
-
 class Analyze:
     def __init__(self, binary, bin_hash):
         self.binary = binary
