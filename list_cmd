@@ -13,6 +13,23 @@
 
 
 
+    ret2win
+    printfread
+    printfwrite
+    ret2system
+    ret2execve
+    ret2syscall
+    ropparams
+    writegadget
+    gotoverwrite
+    ret2one
+
+
+
+
+
+if it freezes, do this to recovre the potfile
+  python fart.py -f
 
 
 
