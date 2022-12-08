@@ -6,7 +6,7 @@ import Fart_FMT
 import Fart_ROP
 import time
 import traceback
-from multiprocessing import Process
+from multiprocessing import Process, current_process
 import os
 import progressbar
 from tabulate import tabulate
@@ -85,6 +85,8 @@ def send(payload, p, analyze):
         p.recvuntil(b"flag{")
         char = "{"
         flag = f"flag{char}{p.recvuntil(b'}').decode('utf-8')}"
+        if current_process().name == 'MainProcess':
+            fart_print.success(f"Flag found! {flag}")
         fart_print.flag(f"{analyze.bin_hash},{analyze.bin_name},{flag}")
 
 def __libc_fart_main(binary, v_lvl, bin_hash):
@@ -105,7 +107,7 @@ def get_opts():
     parser.add_argument("-b", "--binary", type=str, help="Exploit a single binary")
     parser.add_argument("-d", "--directory", type=str, help="Exploit all binaries in a directory")
     parser.add_argument("-v", "--verbosity", type=int, help="Set the print verbosity level (0-4)")
-
+    parser.add_argument("-f", "--flags", )
     pargs = parser.parse_args()
     
     return pargs
@@ -119,11 +121,36 @@ def check_pot_file(data, binary, bin_hash):
             return True
     return False
     
-
 def generate_md5sum(binary):
     bin_name = binary.split("/")[-1]
     fart_print.info(f"Calculating MD5 sum of {bin_name}")
     return hashlib.md5(open(binary, "rb").read()).hexdigest()
+
+def get_pot_file(): 
+    try:
+        pot_fd = open(".flags.pot", "r")
+    except FileNotFoundError:
+        fart_print.warning("No flag pot file found! Generating one now.")
+        os.system("touch .flags.pot") 
+        pot_fd = open(".flags.pot", "r")
+
+    fart_print.info("Retrieving previously solved binaries")
+    pot_data = pot_fd.read().split("\n")[:-1]
+    pot_fd.close()
+    return pot_data
+
+def print_table():
+    with open(".flags.pot", "r") as fd:
+        flags = fd.read().split("\n")[:-1]
+        table = []
+        for flag in flags:
+            table.append(flag.split(","))
+    
+    print("")
+    print("")
+    print(tabulate(table, headers=["MD5", "Binary", "Flag"], showindex="always"))
+    
+    return flags
 
 if __name__ == "__main__":
     opts = get_opts()
@@ -143,18 +170,11 @@ if __name__ == "__main__":
     processes = []
  
     fart_print.green(banner)
-    
-    try:
-        pot_fd = open(".flags.pot", "r")
-    except FileNotFoundError:
-        fart_print.warning("No flag pot file found! Generating one now.")
-        os.system("touch .flags.pot") 
-        pot_fd = open(".flags.pot", "r")
 
-    fart_print.info("Retrieving previously solved binaries")
-    pot_data = pot_fd.read().split("\n")[:-1]
-    pot_fd.close()
+    # Get previous solves
+    pot_data = get_pot_file()
 
+    # If running against multiple targets
     if bins_dir:
         for binary in os.listdir(bins_dir):    
             bins.append(bins_dir + "/" + binary)
@@ -167,7 +187,7 @@ if __name__ == "__main__":
             
                 proc.start()
                 processes.append(proc)
-    else:
+    else:   # If running against a single binary
         if opts.binary:
             binary = opts.binary
         else:
@@ -191,19 +211,10 @@ if __name__ == "__main__":
         if len(processes) == 0:
             break
     
-    with open(".flags.pot", "r") as fd:
-        flags = fd.read().split("\n")[:-1]
-        table = []
-        for flag in flags:
-            table.append(flag.split(","))
-    
-    # TODO: Make it to where if the current binary does not get the flag, it doesn't print the table if its a one off run
-    print("")
-    print("")
-    print(tabulate(table, headers=["MD5", "Binary", "Flag"], showindex="always"))
-    
-    fart_print.v_level = 4
-    if bins:
-        fart_print.info(f"Flags recovered: {len(flags)}/{len(bins)}")
-    else:
-        fart_print.info(f"Flags recovered: {len(flags)}/1")
+    if opts.directory:
+        flags = print_table()
+        fart_print.v_level = 4
+        if bins:
+            fart_print.info(f"Flags recovered: {len(flags)}/{len(bins)}")
+        else:
+            fart_print.info(f"Flags recovered: {len(flags)}/1")
