@@ -272,7 +272,8 @@ class ROP:
     # 0th is write_mem, 1st is other adddr
     def get_primitive_regs(self):
         prim = self.get_primitives_str().split('mov qword ptr')[1].split(';')[0][2:].split(',')
-        return [prim[0][:2], prim[1]]
+        return [prim[0][:prim[0].find("]")], prim[1]]
+    
     def get_writeable_mem(self):
         return self.analysis.elf.sym['__data_start']
     

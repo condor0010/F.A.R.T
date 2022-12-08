@@ -53,15 +53,17 @@ def start(binary):
     else:
         return process(e.path)
 
-#def calculating_flatulence():
-#    prn = random.randint(0,9)
-#    if prn >= 7:
-#        with open(".gas", "r") as fd:
-#            lines = fd.read().split("\n")[:-1]
-#            fart_print.info(lines[random.randint(0,len(lines))])
+def calculating_flatulence():
+    prn = random.randint(0,9)
+    if prn >= 7:
+        with open(".gas", "r") as fd:
+            lines = fd.read().split("\n")[:-1]
+            fart_print.info(lines[random.randint(0,len(lines)-1)])
 
 
 def exploit(analyize, v_lvl):
+
+    calculating_flatulence()
     binary = analyze.binary
     p = start(binary)
     payload = None
@@ -84,7 +86,6 @@ def exploit(analyize, v_lvl):
     p.close()
 
 def send(payload, p, analyze):
-    #calculating_flatulence()
     if payload:
         p.sendline(payload)
         if analyze.has_binsh():
@@ -115,7 +116,7 @@ def get_opts():
     parser.add_argument("-b", "--binary", type=str, help="Exploit a single binary")
     parser.add_argument("-d", "--directory", type=str, help="Exploit all binaries in a directory")
     parser.add_argument("-v", "--verbosity", type=int, help="Set the print verbosity level (0-4)")
-    parser.add_argument("-f", "--flags", )
+    parser.add_argument("-f", "--flags", action='store_true', help="Print all solved binaries")
     pargs = parser.parse_args()
     
     return pargs
@@ -162,6 +163,10 @@ def print_table():
 
 if __name__ == "__main__":
     opts = get_opts()
+
+    if opts.flags:
+        print_table()
+        sys.exit(0)
      
     v_lvl = opts.verbosity
     if not v_lvl:

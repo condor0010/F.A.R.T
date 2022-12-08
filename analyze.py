@@ -121,7 +121,7 @@ class Analyze:
 
     def get_catflagtxt(self):
         if self.has_catflagtxt():
-            return next(self.elf.search(b"cat flag.txt\0"))
+            return next(self.elf.search(b"cat flag.txt"))
         else:
             return None
     

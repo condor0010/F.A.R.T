@@ -111,14 +111,24 @@ class FMT:
             
             p = process(self.filename)
             p.sendline(payload)
-
+            
             self.print_flag(p)
 
     def print_flag(self, p): 
         if self.analysis.has_catflagtxt():
             p.recvuntil(b"<<<")
-            p.recvline()
-
+            #print(p.recvline())
+            line = p.recvline()
+            if b"flag" in line: 
+                line = line.decode('utf-8')
+                flag = line[line.find("flag"):line.find("}")+1]
+                self.fart_print.flag(f"{self.analysis.bin_hash},{self.analysis.bin_name},{flag}")
+                
+                if current_process().name == 'MainProcess':
+                    self.fart_print.success(f"Flag found! {flag}")
+                return
+            #else:
+            
             flag = p.recvline().decode('utf-8').strip('\n')
             self.fart_print.flag(f"{self.analysis.bin_hash},{self.analysis.bin_name},{flag}")
         elif self.analysis.has_binsh():
