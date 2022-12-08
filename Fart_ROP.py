@@ -76,10 +76,11 @@ class ROP:
             p = process(self.filename)
             p.sendline(cyclic(500, n=8))
             
-            time.sleep(0.1)
+            time.sleep(1)
             core = Coredump(f"./core_files/core.{p.pid}")
-            time.sleep(0.1)
+            time.sleep(1)
             os.remove(f"./core_files/core.{p.pid}")
+            time.sleep(1)
             offset = cyclic_find(core.read(core.rsp, 8), n=8)
             
             p.close()
