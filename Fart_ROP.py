@@ -24,18 +24,9 @@ class ROP:
         self.cache_angrop = b''
 
     def write_binsh_to_mem(self):
-        #prim = self.get_primitives_str()
-        #value_reg = self.get_primitive_regs()[1]
-        #point_reg = self.get_primitive_regs()[0]
-        #print(value_reg)
-        #print(point_reg)
-        #chain = b""
-        #chain += self.fill_reg(value_reg, b'/bin/sh\0')
-        #chain += self.fill_reg(point_reg, self.get_writeable_mem())
-        #print(self.write_binsh())
-        
         self.analysis.hbsh = True
         return self.write_binsh_manual()
+
 
 
 
