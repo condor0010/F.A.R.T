@@ -16,6 +16,14 @@ import argparse
 import hashlib
 import random
 
+
+
+logging.getLogger('angr').setLevel(logging.WARNING)
+logging.getLogger('angrop').setLevel(logging.WARNING)
+logging.getLogger('os').setLevel(logging.WARNING)
+logging.getLogger('pwnlib').setLevel(logging.WARNING)
+logging.disable(logging.CRITICAL)
+
 banner = '''
    ad88                                
   d8"                           ,d     
