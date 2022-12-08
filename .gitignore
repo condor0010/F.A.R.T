@@ -5,3 +5,4 @@ lib64
 .gdb_history
 .flags.pot
 test.py
+core_files/core*

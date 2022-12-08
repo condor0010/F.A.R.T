@@ -45,6 +45,8 @@ class FMT:
             p.close()
         
         vals = ''.join(hex_vals)
+        print(vals)
+        # TODO: Some flags on the stack don't have a right bracket
         if "flag" in vals:
             start = vals.find("flag")
             end = vals.find("}")
