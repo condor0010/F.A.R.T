@@ -41,7 +41,7 @@ MM88MMM ,adPPYYba, 8b,dPPYba, MM88MMM
 fire = "\U0001F525"
 
 gs = '''
-b win
+b vuln
 continue
 '''
 context.terminal = ["tmux", "splitw", "-h"]
