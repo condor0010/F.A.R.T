@@ -78,6 +78,7 @@ class ROP:
             
             time.sleep(0.1)
             core = Coredump(f"./core_files/core.{p.pid}")
+            time.sleep(0.1)
             os.remove(f"./core_files/core.{p.pid}")
             offset = cyclic_find(core.read(core.rsp, 8), n=8)
             
