@@ -1,0 +1,20 @@
+  python fart.py -d new_bins/ret2win      2>/dev/null
+  python fart.py -d new_bins/printfread   2>/dev/null
+  python fart.py -d new_bins/printfwrite  2>/dev/null
+  python fart.py -d new_bins/ret2system   2>/dev/null
+  python fart.py -d new_bins/ret2execve   2>/dev/null
+  python fart.py -d new_bins/ret2syscall  2>/dev/null
+  python fart.py -d new_bins/ropparams    2>/dev/null
+  python fart.py -d new_bins/writegadget  2>/dev/null
+  python fart.py -d new_bins/gotoverwrite 2>/dev/null
+  python fart.py -d new_bins/ret2one      2>/dev/null
+
+
+
+
+
+
+
+
+
+
