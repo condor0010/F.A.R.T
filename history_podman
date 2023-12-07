@@ -1,0 +1,53 @@
+[root@e8da381222fe F.A.R.T]# history | grep dnf
+    1  dnf update; dnf upgrade; dnf install python3 python3-pip; python3 -m pip install scapy scipy numpy pwntools z3-solver angr shodan pandas rzpipe semgrep jupyterlab keystone capstone PyX PDPParser virtualenvwrapper; python3 -m pip install angr angrop angr-management keystone-engine; pip uninstall ply; pip uninstall pyhcl; pip install ply; pip install pyhcl
+    3  dnf install git
+    4  dnf update; dnf upgrade; dnf install git python3 python3-pip; python3 -m pip install scapy scipy numpy pwntools z3-solver angr shodan pandas rzpipe semgrep jupyterlab keystone capstone PyX PDPParser virtualenvwrapper; python3 -m pip install angr angrop angr-management keystone-engine tabulate; pip uninstall ply; pip uninstall pyhcl; pip install ply; pip install pyhcl
+    8  dnf update; dnf upgrade; dnf install git python3 python3-pip; python3 -m pip install scapy scipy numpy pwntools z3-solver angr shodan pandas rzpipe semgrep jupyterlab keystone capstone PyX PDPParser virtualenvwrapper; python3 -m pip install angr angrop angr-management keystone-engine tabulate pwntools ; pip uninstall ply; pip uninstall pyhcl; pip install ply; pip install pyhcl
+    9  dnf update; dnf upgrade; dnf install git gdb python3 python3-pip; python3 -m pip install scapy scipy numpy pwntools z3-solver angr shodan pandas rzpipe semgrep jupyterlab keystone capstone PyX PDPParser virtualenvwrapper; python3 -m pip install angr angrop angr-management keystone-engine tabulate pwntools ; pip uninstall ply; pip uninstall pyhcl; pip install ply; pip install pyhcl
+   11  dnf update; dnf upgrade; dnf install git gdb python3 python3-pip; python3 -m pip install scapy rizin scipy numpy pwntools z3-solver angr shodan pandas rzpipe semgrep jupyterlab keystone capstone PyX PDPParser virtualenvwrapper; python3 -m pip install angr angrop angr-management keystone-engine tabulate pwntools rzpipe; pip uninstall ply; pip uninstall pyhcl; pip install ply; pip install pyhcl
+   13  dnf update; dnf upgrade; dnf install git gdb python3 python3-pip; python3 -m pip install progressbar scapy rizin scipy numpy pwntools z3-solver angr shodan pandas rzpipe semgrep jupyterlab keystone capstone PyX PDPParser virtualenvwrapper; python3 -m pip install angr angrop angr-management keystone-engine tabulate pwntools rzpipe; pip uninstall ply; pip uninstall pyhcl; pip install ply; pip install pyhcl
+   18  dnf update; dnf upgrade; dnf install git gdb python3 python3-pip; python3 -m pip install progressbar scapy rizin scipy numpy pwntools z3-solver angr shodan pandas rzpipe semgrep jupyterlab keystone capstone PyX PDPParser virtualenvwrapper; python3 -m pip install angr progressbar angrop angr-management keystone-engine tabulate pwntools rzpipe; pip uninstall ply; pip uninstall pyhcl; pip install ply; pip install pyhcl
+   25  dnf install vim
+   34  dnf search rizin
+   35  sudo dnf install rizin rizin-*
+   37  history | grep dnf
+[root@e8da381222fe F.A.R.T]#
+[root@e8da381222fe F.A.R.T]# history
+    1  dnf update; dnf upgrade; dnf install python3 python3-pip; python3 -m pip install scapy scipy numpy pwntools z3-solver angr shodan pandas rzpipe semgrep jupyterlab keystone capstone PyX PDPParser virtualenvwrapper; python3 -m pip install angr angrop angr-management keystone-engine; pip uninstall ply; pip uninstall pyhcl; pip install ply; pip install pyhcl
+    2  python3
+    3  dnf install git
+    4  dnf update; dnf upgrade; dnf install git python3 python3-pip; python3 -m pip install scapy scipy numpy pwntools z3-solver angr shodan pandas rzpipe semgrep jupyterlab keystone capstone PyX PDPParser virtualenvwrapper; python3 -m pip install angr angrop angr-management keystone-engine tabulate; pip uninstall ply; pip uninstall pyhcl; pip install ply; pip install pyhcl
+    5  cd
+    6  cd F.A.R.T/
+    7  python3 fart.py
+    8  dnf update; dnf upgrade; dnf install git python3 python3-pip; python3 -m pip install scapy scipy numpy pwntools z3-solver angr shodan pandas rzpipe semgrep jupyterlab keystone capstone PyX PDPParser virtualenvwrapper; python3 -m pip install angr angrop angr-management keystone-engine tabulate pwntools ; pip uninstall ply; pip uninstall pyhcl; pip install ply; pip install pyhcl
+    9  dnf update; dnf upgrade; dnf install git gdb python3 python3-pip; python3 -m pip install scapy scipy numpy pwntools z3-solver angr shodan pandas rzpipe semgrep jupyterlab keystone capstone PyX PDPParser virtualenvwrapper; python3 -m pip install angr angrop angr-management keystone-engine tabulate pwntools ; pip uninstall ply; pip uninstall pyhcl; pip install ply; pip install pyhcl
+   10  python3 fart.py
+   11  dnf update; dnf upgrade; dnf install git gdb python3 python3-pip; python3 -m pip install scapy rizin scipy numpy pwntools z3-solver angr shodan pandas rzpipe semgrep jupyterlab keystone capstone PyX PDPParser virtualenvwrapper; python3 -m pip install angr angrop angr-management keystone-engine tabulate pwntools rzpipe; pip uninstall ply; pip uninstall pyhcl; pip install ply; pip install pyhcl
+   12  python3 fart.py
+   13  dnf update; dnf upgrade; dnf install git gdb python3 python3-pip; python3 -m pip install progressbar scapy rizin scipy numpy pwntools z3-solver angr shodan pandas rzpipe semgrep jupyterlab keystone capstone PyX PDPParser virtualenvwrapper; python3 -m pip install angr angrop angr-management keystone-engine tabulate pwntools rzpipe; pip uninstall ply; pip uninstall pyhcl; pip install ply; pip install pyhcl
+   14  python3 fart.py
+   15  python3
+   16  pip install progressbar
+   17  python3 fart.py
+   18  dnf update; dnf upgrade; dnf install git gdb python3 python3-pip; python3 -m pip install progressbar scapy rizin scipy numpy pwntools z3-solver angr shodan pandas rzpipe semgrep jupyterlab keystone capstone PyX PDPParser virtualenvwrapper; python3 -m pip install angr progressbar angrop angr-management keystone-engine tabulate pwntools rzpipe; pip uninstall ply; pip uninstall pyhcl; pip install ply; pip install pyhcl
+   19  python3 fart.py
+   20  python3 fart.py -h
+   21  ls
+   22  python3 fart.py -b bins/bin-0
+   23  grep -r /opt/libc.so.6
+   24  vim Fart_ROP.py
+   25  dnf install vim
+   26  vim Fart_ROP.py
+   27  grep -r /opt/libc.so.6
+   28  vim analyze.py
+   29  python3 fart.py -b bins/bin-0
+   30  grep -r r2pipe
+   31  vim analyze.py
+   32  grep -r r2pipe
+   33  python3 fart.py -b bins/bin-0
+   34  dnf search rizin
+   35  sudo dnf install rizin rizin-*
+   36  python3 fart.py -b bins/bin-0
+   37  history | grep dnf
+   38  history

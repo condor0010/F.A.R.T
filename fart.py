@@ -8,7 +8,7 @@ import time
 import traceback
 from multiprocessing import Process, current_process
 import os
-import progressbar
+#import progressbar
 from tabulate import tabulate
 import sys
 from Print import Print
@@ -66,7 +66,9 @@ def exploit(analyize, v_lvl):
     calculating_flatulence()
     binary = analyze.binary
     p = start(binary)
-    payload = None
+    # changed today
+    #payload = None
+    payload = b''
     
     fart_print.info("Determining vulnerability type")
     if not analyze.has_leak():
@@ -87,6 +89,7 @@ def exploit(analyize, v_lvl):
 
 def send(payload, p, analyze):
     if payload:
+        print(payload)
         p.sendline(payload)
         if analyze.has_binsh():
             sleep(0.1)
@@ -195,11 +198,11 @@ if __name__ == "__main__":
         for binary in bins:
             bin_hash = generate_md5sum(binary)
 
-            if not check_pot_file(pot_data, binary, bin_hash):
-                proc = Process(target=__libc_fart_main, args=(binary,0,bin_hash))
+            #if not check_pot_file(pot_data, binary, bin_hash):
+            proc = Process(target=__libc_fart_main, args=(binary,0,bin_hash))
             
-                proc.start()
-                processes.append(proc)
+            proc.start()
+            processes.append(proc)
     else:   # If running against a single binary
         if opts.binary:
             binary = opts.binary
@@ -207,12 +210,12 @@ if __name__ == "__main__":
             binary = args.BIN
 
         bin_hash = generate_md5sum(binary)
-        if not check_pot_file(pot_data, binary, bin_hash):
-            __libc_fart_main(binary, v_lvl, bin_hash)
+        #if not check_pot_file(pot_data, binary, bin_hash):
+        __libc_fart_main(binary, v_lvl, bin_hash)
     
     # Quiet for the progress bar
     fart_print.v_level = 0
-    bar = progressbar.ProgressBar(max_value=len(bins), fd=sys.stdout)
+    #bar = progressbar.ProgressBar(max_value=len(bins), fd=sys.stdout)
     
     num = 0
     while True:
@@ -220,7 +223,7 @@ if __name__ == "__main__":
             if not proc.is_alive():
                 processes.remove(proc)
                 num += 1
-                bar.update(num)
+                #bar.update(num)
         if len(processes) == 0:
             break
     

@@ -3,22 +3,22 @@ import json
 import rzpipe
 import logging
 from pwn import *
-from Print import *
+#from Print import *
 
 class Analyze:
-    def __init__(self, binary, bin_hash):
+    def __init__(self, binary):
         self.binary = binary
-        self.bin_hash = bin_hash
+        #self.bin_hash = bin_hash
         self.elf  = ELF(binary)
-        self.libc = ELF('./docker/libc/libc.so.6')
+        self.libc = ELF('../docker/libc/libc.so.6')
         self.bin_name = binary.split("/")[-1]
 
         # r2pipe setup
-        self.rz = rzpipe.open(self.binary, flags=['-2']) # open binary
-        self.rz.cmd('e scr.color=1')
+        self.rz = rzpipe.open(self.binary, flags=['-2']) # open binary, disable stderr
+        self.rz.cmd('e scr.color=0')
         self.rz.cmd('aaa') # analyze binary
-        self.izz = json.loads(self.rz.cmd('izj')) # returns json relating to strings
-        self.afl = json.loads(self.rz.cmd('aflj')) # returns json relating to functions
+        self.izz = self.rz.cmdj('izj') # returns json relating to strings
+        self.afl = self.rz.cmdj('aflj') # returns json relating to functions
         
         # see what is in the binary
         self.strings = [i['string'] for i in self.izz if 'string' in i] # returns list of strings
@@ -129,7 +129,7 @@ class Analyze:
         return self.function_addrs['sym.win']
    
     def get_win_arg(self):
-        return self.rz.cmd('pdf @ sym.win | awk \'/cmp/{print $NF}\'')
+        return self.rz.cmdj('pdfj @ sym.win')
 
     def get_vuln(self):
         return self.function_addrs['sym.vuln']
@@ -139,7 +139,7 @@ class Analyze:
 
     def get_vuln_args(self):
         if self.has_win():
-            return int(self.rz.cmd("pdf @ sym.vuln | awk \'/cmp/{print $NF}\'"))
+            return self.rz.cmdj("pdfj @ sym.vuln")
         return None
  
     def libc_printf(self, libc_fcn):
@@ -161,3 +161,38 @@ class Analyze:
                 return "0x" in p.recvline().decode("utf-8")
             except EOFError as e:
                 return False
+
+# grep def analyze.py | sed "s/(.*)/()/g;s/://g;s/ *def /    print ( analyze./g;s/$/ )/g" | grep -v "__"  | awk '{print "    "$1" "$2" \""$3" \" + str("$3") "$4}'
+if __name__ == "__main__":
+    import sys
+    binary = sys.argv[1]
+    analyze = Analyze(binary)
+    print ( "analyze.has_leak_string() " + str(analyze.has_leak_string()) )
+    print ( "analyze.has_binsh() " + str(analyze.has_binsh()) )
+    print ( "analyze.has_flagtxt() " + str(analyze.has_flagtxt()) )
+    print ( "analyze.has_catflagtxt() " + str(analyze.has_catflagtxt()) )
+    print ( "analyze.has_gets() " + str(analyze.has_gets()) )
+    print ( "analyze.has_win() " + str(analyze.has_win()) )
+    print ( "analyze.has_system() " + str(analyze.has_system()) )
+    print ( "analyze.has_printf() " + str(analyze.has_printf()) )
+    print ( "analyze.has_syscall() " + str(analyze.has_syscall()) )
+    print ( "analyze.has_format() " + str(analyze.has_format()) )
+    print ( "analyze.has_execve() " + str(analyze.has_execve()) )
+    print ( "analyze.has_rop() " + str(analyze.has_rop()) )
+    print ( "analyze.has_canary() " + str(analyze.has_canary()) )
+    print ( "analyze.has_nx() " + str(analyze.has_nx()) )
+    print ( "analyze.has_putchar() " + str(analyze.has_putchar()) )
+    print ( "analyze.win_has_args() " + str(analyze.win_has_args()) )
+    print ( "analyze.vuln_has_cmp() " + str(analyze.vuln_has_cmp()) )
+    print ( "analyze.get_binsh() " + str(analyze.get_binsh()) )
+    print ( "analyze.get_flagtxt() " + str(analyze.get_flagtxt()) )
+    print ( "analyze.get_catflagtxt() " + str(analyze.get_catflagtxt()) )
+    print ( "analyze.get_win() " + str(analyze.get_win()) )
+    print ( "analyze.get_win_arg() " + str(analyze.get_win_arg()) )
+    print ( "analyze.get_vuln() " + str(analyze.get_vuln()) )
+    print ( "analyze.get_fini() " + str(analyze.get_fini()) )
+    print ( "analyze.get_vuln_args() " + str(analyze.get_vuln_args()) )
+    print ( "analyze.libc_printf() " + str(analyze.libc_printf()) )
+    print ( "analyze.libc_puts() " + str(analyze.libc_puts()) )
+    print ( "analyze.find_leaked_function() " + str(analyze.find_leaked_function()) )
+    print ( "analyze.has_leak() " + str(analyze.has_leak()) )
